@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// TODO: 後で作成するファイルからインポート
+// import 'core/router/app_router.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -28,7 +31,8 @@ class MyApp extends StatelessWidget {
       ),
       home: const Scaffold(
         body: Center(
-          child: Text('Shilaf'),
+          child: Text('Shilaf',
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
         ),
       ),
     );

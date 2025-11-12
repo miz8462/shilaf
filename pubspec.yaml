@@ -20,6 +20,9 @@ dependencies:
   # 画面遷移
   go_router:
 
+  # サインイン
+  google_sign_in: ^6.2.1
+
   # UI
   google_fonts:
 
