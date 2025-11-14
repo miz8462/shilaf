@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shilaf/core/constants/app_color.dart';
 
 import '../../providers/auth_provider.dart';
@@ -256,7 +257,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                       const Text('すでにアカウントをお持ちの方は'),
                       TextButton(
                         onPressed: () {
-                          Navigator.pop(context);
+                          context.go('/login');
                         },
                         child: const Text('ログイン'),
                       ),

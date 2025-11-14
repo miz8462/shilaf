@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_color.dart';
 import '../../providers/auth_provider.dart';
@@ -206,8 +207,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       const Text('アカウントをお持ちでない方は'),
                       TextButton(
                         onPressed: () {
-                          // TODO: サインアップ画面への遷移
-                          Navigator.pushNamed(context, '/signup');
+                          context.go('/signup');
                         },
                         child: const Text('新規登録'),
                       ),
