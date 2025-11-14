@@ -73,7 +73,7 @@ class AuthRepository {
   }
 
   /// アプリ版のGoogle認証
-  Future<AuthResponse> _signInWithGoogleNative() async {
+  Future<AuthResponse> signInWithGoogleNative() async {
     // Google Sign Inのインスタンス取得
     final googleSignIn = GoogleSignIn(
       clientId: dotenv.env['GOOGLE_IOS_CLIENT_ID'], // iOS用
