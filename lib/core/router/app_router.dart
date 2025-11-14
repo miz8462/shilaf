@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:go_router/go_router.dart';
 // 画面のインポート
-import '../../features/auth/presentation/pages/login_page.dart';
-import '../../features/auth/presentation/pages/signup_page.dart';
-import '../../features/home/presentation/pages/home_page.dart';
-
+import 'package:shilaf/features/auth/presentation/pages/login_page.dart';
+import 'package:shilaf/features/auth/presentation/pages/signup_page.dart';
 // 認証プロバイダーのインポート
-import '../../features/auth/providers/auth_provider.dart';
+import 'package:shilaf/features/auth/providers/auth_provider.dart';
+import 'package:shilaf/features/home/presentation/pages/home_page.dart';
+import 'package:shilaf/features/profile/presentation/pages/onboarding_page.dart';
+// ユーザープロバイダーのインポート（追加）
+import 'package:shilaf/features/profile/providers/user_provider.dart';
 
 /// ルーターのプロバイダー
 /// アプリ全体のルーティングを管理する
@@ -23,27 +24,40 @@ final routerProvider = Provider<GoRouter>((ref) {
     // デバッグモード（開発中はtrueにすると遷移ログが見れる）
     debugLogDiagnostics: true,
 
-    // リダイレクト処理（認証チェック）
+    // リダイレクト処理（認証チェック + 初期設定チェック）
     // 画面遷移のたびに呼ばれる
-    redirect: (BuildContext context, GoRouterState state) {
+    redirect: (BuildContext context, GoRouterState state) async {
       // 認証状態を取得
       final isAuthenticated = authState.asData?.value.session != null;
+
+      // 初期設定完了状態を取得
+      final hasCompletedOnboarding = isAuthenticated
+          ? await ref.read(hasCompletedOnboardingProvider.future)
+          : false;
 
       // 現在アクセスしようとしているパス
       final isGoingToLogin = state.matchedLocation == '/login';
       final isGoingToSignup = state.matchedLocation == '/signup';
+      final isGoingToOnboarding = state.matchedLocation == '/onboarding';
 
-      // 【ケース1】未認証なのに認証が必要な画面にアクセスしようとした場合
+      // 【優先順位1】未認証なのに認証が必要な画面にアクセスしようとした場合
       if (!isAuthenticated && !isGoingToLogin && !isGoingToSignup) {
         return '/login'; // ログイン画面にリダイレクト
       }
 
-      // 【ケース2】認証済みなのにログイン画面にアクセスしようとした場合
-      if (isAuthenticated && (isGoingToLogin || isGoingToSignup)) {
+      // 【優先順位2】認証済みだが初期設定未完了
+      if (isAuthenticated && !hasCompletedOnboarding && !isGoingToOnboarding) {
+        return '/onboarding'; // 初期設定画面にリダイレクト
+      }
+
+      // 【優先順位3】認証済み & 初期設定完了なのにログイン画面にアクセス
+      if (isAuthenticated &&
+          hasCompletedOnboarding &&
+          (isGoingToLogin || isGoingToSignup || isGoingToOnboarding)) {
         return '/home'; // ホーム画面にリダイレクト
       }
 
-      // 【ケース3】問題なし（リダイレクト不要）
+      // 【優先順位4】問題なし（リダイレクト不要）
       return null;
     },
 
@@ -76,6 +90,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       // ========================
       // 認証後の画面（認証必須）
       // ========================
+
+      /// 初期設定画面
+      /// パス: /onboarding
+      GoRoute(
+        path: '/onboarding',
+        name: 'onboarding',
+        builder: (BuildContext context, GoRouterState state) {
+          return const OnboardingPage();
+        },
+      ),
 
       /// ホーム画面
       /// パス: /home
