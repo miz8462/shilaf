@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../auth/providers/auth_provider.dart';
+import 'package:shilaf/features/auth/providers/auth_provider.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
