@@ -1,40 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shilaf/core/constants/app_theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// TODO: 後で作成するファイルからインポート
-// import 'core/router/app_router.dart';
+// ルーターのインポート
+import 'core/router/app_router.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await dotenv.load(fileName: ".env");
+  // .envファイルを読み込み
+  await dotenv.load(fileName: '.env');
 
+  // Supabase初期化
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
+// StatelessWidget → ConsumerWidgetに変更（Riverpodでルーターを取得するため）
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    // ルーターを取得
+    final router = ref.watch(routerProvider);
+
+    // MaterialApp → MaterialApp.routerに変更
+    return MaterialApp.router(
+      // ルーターの設定
+      routerConfig: router,
+
+      // アプリ設定
       title: 'Shilaf',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('Shilaf',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-        ),
-      ),
+      theme: AppTheme.lightTheme,
+
+      // debugShowCheckedModeBannerを非表示（お好みで）
+      debugShowCheckedModeBanner: false,
     );
   }
 }

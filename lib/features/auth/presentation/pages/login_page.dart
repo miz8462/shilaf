@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/constants/app_color.dart';
 import '../../providers/auth_provider.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -78,7 +80,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     style: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple,
+                      color: AppColors.primary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -154,7 +156,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     onPressed: authState.isLoading ? null : _handleEmailLogin,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.deepPurple,
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                     ),
                     child: authState.isLoading

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shilaf/core/constants/app_color.dart';
+
 import '../../providers/auth_provider.dart';
 
 class SignupPage extends ConsumerStatefulWidget {
@@ -204,7 +206,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     onPressed: authState.isLoading ? null : _handleSignup,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.deepPurple,
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                     ),
                     child: authState.isLoading
