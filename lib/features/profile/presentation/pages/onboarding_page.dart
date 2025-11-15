@@ -16,6 +16,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _bioController = TextEditingController();
+  final _weeklyDrinkingCostController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
@@ -24,6 +25,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   void dispose() {
     _usernameController.dispose();
     _bioController.dispose();
+    _weeklyDrinkingCostController.dispose();
     super.dispose();
   }
 
@@ -59,11 +61,17 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
 
     try {
       // 1. ユーザーデータを作成
+      final weeklyCostText = _weeklyDrinkingCostController.text.trim();
+      final weeklyCost = weeklyCostText.isEmpty
+          ? null
+          : int.tryParse(weeklyCostText);
+
       await ref.read(userNotifierProvider.notifier).createUser(
             username: _usernameController.text.trim(),
             bio: _bioController.text.trim().isEmpty
                 ? null
                 : _bioController.text.trim(),
+            weeklyDrinkingCost: weeklyCost,
           );
 
       // エラーチェック
@@ -211,6 +219,40 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                     ),
                     maxLines: 3,
                     maxLength: 200,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 週あたりの飲酒コスト（任意）
+                  TextFormField(
+                    controller: _weeklyDrinkingCostController,
+                    decoration: const InputDecoration(
+                      labelText: '週あたりの飲酒コスト（任意）',
+                      hintText: '例: 5000',
+                      prefixIcon: Icon(Icons.attach_money),
+                      suffixText: '円',
+                      helperText: '節約額計算に使用されます',
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value != null && value.trim().isNotEmpty) {
+                        final cost = int.tryParse(value.trim());
+                        if (cost == null) {
+                          return '数値を入力してください';
+                        }
+                        if (cost < 0) {
+                          return '0以上の数値を入力してください';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '※ 設定すると、継続日数に応じた節約額が表示されます',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 32),
 

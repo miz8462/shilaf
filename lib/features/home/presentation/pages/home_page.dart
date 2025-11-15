@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shilaf/core/constants/app_color.dart';
+import 'package:shilaf/features/achievements/providers/achievement_provider.dart';
 import 'package:shilaf/features/auth/providers/auth_provider.dart';
 import 'package:shilaf/features/profile/providers/user_provider.dart';
 import 'package:shilaf/features/streaks/providers/streak_provider.dart';
+import 'package:shilaf/features/streaks/utils/savings_calculator.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -212,25 +214,236 @@ class HomePage extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
 
-              // 達成ボタン（Phase 4で実装予定）
-              ElevatedButton.icon(
-                onPressed: null, // 今は無効
-                icon: const Icon(Icons.check_circle_outline),
-                label: const Text('今日の達成を記録'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: AppColors.secondary,
-                  disabledBackgroundColor: AppColors.textDisabled,
-                ),
+              // 節約額表示カード
+              Consumer(
+                builder: (context, ref, child) {
+                  final userDataAsync = ref.watch(currentUserDataProvider);
+                  final streakAsync = ref.watch(currentStreakProvider);
+
+                  return userDataAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (error, stack) => const SizedBox.shrink(),
+                    data: (user) {
+                      if (user == null) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return streakAsync.when(
+                        loading: () => const SizedBox.shrink(),
+                        error: (error, stack) => const SizedBox.shrink(),
+                        data: (streak) {
+                          if (streak == null) {
+                            return const SizedBox.shrink();
+                          }
+
+                          // 継続日数を計算
+                          final days = streak.calculateDaysFromStart() + 1;
+                          // 総節約額を計算
+                          final totalSavings =
+                              SavingsCalculator.calculateTotalSavings(
+                            days: days,
+                            weeklyCost: user.weeklyDrinkingCost,
+                          );
+
+                          // 週あたりのコストが設定されていない場合は表示しない
+                          if (user.weeklyDrinkingCost == null ||
+                              user.weeklyDrinkingCost! <= 0) {
+                            return const SizedBox.shrink();
+                          }
+
+                          // 1日あたりの節約額を計算
+                          final dailySavings = SavingsCalculator.calculateDailySavings(
+                            user.weeklyDrinkingCost,
+                          );
+
+                          return Card(
+                            color: AppColors.secondary.withValues(alpha: 0.1),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.savings,
+                                        color: AppColors.secondary,
+                                        size: 24,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '累計節約額',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    SavingsCalculator.formatAmount(
+                                        totalSavings),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.secondary,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '1日あたり ${SavingsCalculator.formatAmount(dailySavings)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '（週あたり ${SavingsCalculator.formatAmount(user.weeklyDrinkingCost!)}）',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: AppColors.textSecondary,
+                                          fontSize: 11,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
               ),
-              const SizedBox(height: 8),
-              const Text(
-                '※ 達成記録機能は近日実装予定',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
-                textAlign: TextAlign.center,
+              const SizedBox(height: 24),
+
+              // 達成ボタン
+              Consumer(
+                builder: (context, ref, child) {
+                  final hasTodayAchievementAsync =
+                      ref.watch(hasTodayAchievementProvider);
+                  final achievementNotifier =
+                      ref.watch(achievementNotifierProvider.notifier);
+                  final achievementState =
+                      ref.watch(achievementNotifierProvider);
+
+                  // 達成記録の状態変化を監視してスナックバーを表示
+                  ref.listen(achievementNotifierProvider, (previous, next) {
+                    if (next.hasError) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            next.error.toString().replaceAll('Exception: ', ''),
+                          ),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                    } else if (previous?.isLoading == true &&
+                        next.hasValue &&
+                        next.value != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('達成記録を登録しました！'),
+                          backgroundColor: AppColors.secondary,
+                        ),
+                      );
+                    }
+                  });
+
+                  return hasTodayAchievementAsync.when(
+                    loading: () => ElevatedButton.icon(
+                      onPressed: null,
+                      icon: const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      label: const Text('読み込み中...'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: AppColors.textDisabled,
+                      ),
+                    ),
+                    error: (error, stack) => ElevatedButton.icon(
+                      onPressed: null,
+                      icon: const Icon(Icons.error_outline),
+                      label: const Text('エラーが発生しました'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: AppColors.error,
+                      ),
+                    ),
+                    data: (hasToday) {
+                      final isLoading = achievementState.isLoading;
+
+                      if (hasToday) {
+                        // 今日の達成記録が既にある場合
+                        return Card(
+                          color: AppColors.secondary.withValues(alpha: 0.1),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.check_circle,
+                                  color: AppColors.secondary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '今日の達成を記録済み',
+                                  style: TextStyle(
+                                    color: AppColors.secondary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      } else {
+                        // 今日の達成記録がない場合
+                        return ElevatedButton.icon(
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  await achievementNotifier
+                                      .createTodayAchievement();
+                                },
+                          icon: isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.check_circle_outline),
+                          label: Text(isLoading ? '登録中...' : '今日の達成を記録'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: isLoading
+                                ? AppColors.textDisabled
+                                : AppColors.secondary,
+                            foregroundColor: Colors.white,
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
               ),
             ],
           ),

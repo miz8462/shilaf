@@ -5,6 +5,7 @@ class UserModel {
   final String username; // ユーザー名
   final String? bio; // 自己紹介（任意）
   final String? avatarUrl; // プロフィール画像URL（任意）
+  final int? weeklyDrinkingCost; // 週あたりの飲酒コスト（円、任意）
   final DateTime createdAt; // 登録日時
   final DateTime? updatedAt; // 更新日時
 
@@ -13,6 +14,7 @@ class UserModel {
     required this.username,
     this.bio,
     this.avatarUrl,
+    this.weeklyDrinkingCost,
     required this.createdAt,
     this.updatedAt,
   });
@@ -24,9 +26,10 @@ class UserModel {
       username: json['username'] as String,
       bio: json['bio'] as String?,
       avatarUrl: json['avatar_url'] as String?,
+      weeklyDrinkingCost: json['weekly_drinking_cost'] as int?,
       createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.parse(json['updated_at'] as String) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
           : null,
     );
   }
@@ -38,6 +41,7 @@ class UserModel {
       'username': username,
       'bio': bio,
       'avatar_url': avatarUrl,
+      'weekly_drinking_cost': weeklyDrinkingCost,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
@@ -49,6 +53,7 @@ class UserModel {
     String? username,
     String? bio,
     String? avatarUrl,
+    int? weeklyDrinkingCost,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -57,6 +62,7 @@ class UserModel {
       username: username ?? this.username,
       bio: bio ?? this.bio,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      weeklyDrinkingCost: weeklyDrinkingCost ?? this.weeklyDrinkingCost,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

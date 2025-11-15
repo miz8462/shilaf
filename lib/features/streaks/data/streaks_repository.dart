@@ -177,6 +177,35 @@ class StreaksRepository {
     }
   }
 
+  /// 最後の達成日を更新
+  /// 達成記録作成時に呼ばれる
+  Future<StreakModel> updateLastAchievementDate(
+      DateTime achievementDate) async {
+    try {
+      final userId = currentUserId;
+      if (userId == null) {
+        throw Exception('User not authenticated');
+      }
+
+      // streaksテーブルを更新
+      final data = {
+        'last_achievement_date': achievementDate.toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      final response = await _supabase
+          .from('streaks')
+          .update(data)
+          .eq('user_id', userId)
+          .select()
+          .single();
+
+      return StreakModel.fromJson(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// 開始日からの経過日数を計算（ヘルパーメソッド）
   int calculateDaysFromDate(DateTime startDate) {
     final now = DateTime.now();

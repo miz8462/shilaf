@@ -40,12 +40,14 @@ class UserNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   Future<void> createUser({
     required String username,
     String? bio,
+    int? weeklyDrinkingCost,
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final user = await _repository.createUser(
         username: username,
         bio: bio,
+        weeklyDrinkingCost: weeklyDrinkingCost,
       );
 
       // 作成後、currentUserDataProviderを再取得させる
@@ -61,6 +63,7 @@ class UserNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     String? username,
     String? bio,
     String? avatarUrl,
+    int? weeklyDrinkingCost,
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
@@ -68,6 +71,7 @@ class UserNotifier extends StateNotifier<AsyncValue<UserModel?>> {
         username: username,
         bio: bio,
         avatarUrl: avatarUrl,
+        weeklyDrinkingCost: weeklyDrinkingCost,
       );
 
       // 更新後、currentUserDataProviderを再取得させる

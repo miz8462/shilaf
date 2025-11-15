@@ -54,6 +54,7 @@ class UsersRepository {
   Future<UserModel> createUser({
     required String username,
     String? bio,
+    int? weeklyDrinkingCost,
   }) async {
     try {
       final userId = currentUserId;
@@ -66,6 +67,8 @@ class UsersRepository {
         'id': userId, // Supabase AuthのUUIDを使用
         'username': username,
         'bio': bio,
+        if (weeklyDrinkingCost != null)
+          'weekly_drinking_cost': weeklyDrinkingCost,
       };
 
       final response =
@@ -83,6 +86,7 @@ class UsersRepository {
     String? username,
     String? bio,
     String? avatarUrl,
+    int? weeklyDrinkingCost,
   }) async {
     try {
       final userId = currentUserId;
@@ -95,6 +99,9 @@ class UsersRepository {
       if (username != null) data['username'] = username;
       if (bio != null) data['bio'] = bio;
       if (avatarUrl != null) data['avatar_url'] = avatarUrl;
+      if (weeklyDrinkingCost != null) {
+        data['weekly_drinking_cost'] = weeklyDrinkingCost;
+      }
 
       // 更新日時を追加
       data['updated_at'] = DateTime.now().toIso8601String();
