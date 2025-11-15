@@ -53,7 +53,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
           ),
         );
         // ログイン画面に戻る
-        Navigator.pop(context);
+        context.go('/login');
       }
     }
   }
