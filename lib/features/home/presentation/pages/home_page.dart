@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shilaf/core/constants/app_color.dart';
-import 'package:shilaf/features/achievements/providers/achievement_provider.dart';
 import 'package:shilaf/features/auth/providers/auth_provider.dart';
+import 'package:shilaf/features/home/presentation/widgets/achievement_section.dart';
+import 'package:shilaf/features/home/presentation/widgets/savings_card.dart';
+import 'package:shilaf/features/home/presentation/widgets/streak_card.dart';
+import 'package:shilaf/features/home/presentation/widgets/user_info_card.dart';
+import 'package:shilaf/features/home/utils/date_formatter.dart';
 import 'package:shilaf/features/milestones/data/models/milestone_model.dart';
 import 'package:shilaf/features/milestones/providers/milestone_provider.dart';
 import 'package:shilaf/features/profile/providers/user_provider.dart';
 import 'package:shilaf/features/streaks/providers/streak_provider.dart';
-import 'package:shilaf/features/streaks/utils/savings_calculator.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
-
-  /// 日付をフォーマット（例: 2024年1月15日）
-  String _formatDate(DateTime date) {
-    return '${date.year}年${date.month}月${date.day}日';
-  }
 
   /// マイルストーン達成ダイアログを表示
   void _showMilestoneDialog(
@@ -81,6 +79,186 @@ class HomePage extends ConsumerWidget {
     );
   }
 
+  /// 継続リセット用のダイアログを表示
+  void _showResetStreakDialog(BuildContext rootContext, WidgetRef ref) {
+    DateTime selectedBreakDate = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+    DateTime selectedRestartDate = selectedBreakDate;
+    bool isSubmitting = false;
+    final scaffoldMessenger = ScaffoldMessenger.of(rootContext);
+
+    Future<DateTime?> pickDate({
+      required DateTime initialDate,
+      required DateTime firstDate,
+      required DateTime lastDate,
+      required String helpText,
+    }) async {
+      final picked = await showDatePicker(
+        context: rootContext,
+        initialDate: initialDate,
+        firstDate: firstDate,
+        lastDate: lastDate,
+        locale: const Locale('ja', 'JP'),
+        helpText: helpText,
+        cancelText: 'キャンセル',
+        confirmText: '決定',
+      );
+      if (picked == null) {
+        return null;
+      }
+      return DateTime(picked.year, picked.month, picked.day);
+    }
+
+    showDialog(
+      context: rootContext,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            Future<void> selectBreakDate() async {
+              final picked = await pickDate(
+                initialDate: selectedBreakDate,
+                firstDate: DateTime(2000),
+                lastDate: DateTime.now(),
+                helpText: '継続が切れた日を選択',
+              );
+              if (picked != null) {
+                setState(() {
+                  selectedBreakDate = picked;
+                  if (selectedRestartDate.isBefore(selectedBreakDate)) {
+                    selectedRestartDate = selectedBreakDate;
+                  }
+                });
+              }
+            }
+
+            Future<void> selectRestartDate() async {
+              final picked = await pickDate(
+                initialDate: selectedRestartDate,
+                firstDate: selectedBreakDate,
+                lastDate: DateTime.now(),
+                helpText: '再開した日を選択',
+              );
+              if (picked != null) {
+                setState(() {
+                  selectedRestartDate = picked;
+                });
+              }
+            }
+
+            Future<void> handleReset() async {
+              setState(() {
+                isSubmitting = true;
+              });
+              try {
+                await ref
+                    .read(streakNotifierProvider.notifier)
+                    .resetStreak(selectedRestartDate);
+
+                if (context.mounted) {
+                  if (Navigator.of(dialogContext).canPop()) {
+                    Navigator.of(dialogContext).pop();
+                  }
+                }
+
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('継続記録をリセットしました'),
+                    backgroundColor: AppColors.primary,
+                  ),
+                );
+              } catch (e) {
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text('リセットに失敗しました: $e'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              } finally {
+                if (context.mounted) {
+                  setState(() {
+                    isSubmitting = false;
+                  });
+                }
+              }
+            }
+
+            final isValid = !selectedRestartDate.isBefore(selectedBreakDate);
+
+            return AlertDialog(
+              title: const Text('継続をリセット'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    '継続記録は残したまま、再開日を設定し直します。\n'
+                    '継続が途切れた日と再開した日を選んでください。',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.cancel_schedule_send),
+                    title: const Text('継続が切れた日'),
+                    subtitle: Text(formatJapaneseDate(selectedBreakDate)),
+                    onTap: isSubmitting ? null : selectBreakDate,
+                    trailing: const Icon(Icons.calendar_today),
+                  ),
+                  const SizedBox(height: 8),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.play_circle_outline),
+                    title: const Text('再開した日'),
+                    subtitle: Text(formatJapaneseDate(selectedRestartDate)),
+                    onTap: isSubmitting ? null : selectRestartDate,
+                    trailing: const Icon(Icons.calendar_today),
+                  ),
+                  const SizedBox(height: 8),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '※ 継続が切れた翌日以降を再開日に選択できます',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                  child: const Text('キャンセル'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: !isSubmitting && isValid ? handleReset : null,
+                  icon: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.refresh),
+                  label: Text(isSubmitting ? 'リセット中...' : 'リセット'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // ユーザーデータを取得
@@ -141,395 +319,19 @@ class HomePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ユーザー情報セクション
-              userDataAsync.when(
-                loading: () => const Center(
-                  child: CircularProgressIndicator(),
-                ),
-                error: (error, stack) => Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      'エラー: $error',
-                      style: const TextStyle(color: AppColors.error),
-                    ),
-                  ),
-                ),
-                data: (user) {
-                  if (user == null) {
-                    return const Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('ユーザー情報が見つかりません'),
-                      ),
-                    );
-                  }
-
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          // プロフィールアイコン
-                          CircleAvatar(
-                            radius: 40,
-                            backgroundColor: AppColors.primaryLight,
-                            child: Text(
-                              user.username[0].toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // ユーザー名
-                          Text(
-                            'こんにちは、${user.username}さん',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          // 登録日
-                          Text(
-                            '登録日: ${_formatDate(user.createdAt)}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+              UserInfoCard(userAsync: userDataAsync),
+              const SizedBox(height: 24),
+              StreakCard(
+                streakAsync: streakAsync,
+                onResetPressed: () => _showResetStreakDialog(context, ref),
               ),
               const SizedBox(height: 24),
-
-              // 継続日数セクション
-              streakAsync.when(
-                loading: () => const Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                ),
-                error: (error, stack) => Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      'エラー: $error',
-                      style: const TextStyle(color: AppColors.error),
-                    ),
-                  ),
-                ),
-                data: (streak) {
-                  if (streak == null) {
-                    return const Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('継続記録が見つかりません'),
-                      ),
-                    );
-                  }
-
-                  // 最新の継続日数を計算
-                  final days = streak.calculateDaysFromStart() + 1;
-
-                  return Card(
-                    color: AppColors.primary,
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        children: [
-                          // 継続日数（大きく）
-                          Text(
-                            '$days',
-                            style: const TextStyle(
-                              fontSize: 72,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 1,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            '日目',
-                            style: TextStyle(
-                              fontSize: 24,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          // 区切り線
-                          Container(
-                            height: 2,
-                            width: 100,
-                            color: Colors.white.withValues(alpha: 0.5),
-                          ),
-                          const SizedBox(height: 24),
-                          // 開始日
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.calendar_today,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${_formatDate(streak.sobrietyStartDate)} 〜',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+              SavingsCard(
+                userAsync: userDataAsync,
+                streakAsync: streakAsync,
               ),
               const SizedBox(height: 24),
-
-              // 節約額表示カード
-              Consumer(
-                builder: (context, ref, child) {
-                  final userDataAsync = ref.watch(currentUserDataProvider);
-                  final streakAsync = ref.watch(currentStreakProvider);
-
-                  return userDataAsync.when(
-                    loading: () => const SizedBox.shrink(),
-                    error: (error, stack) => const SizedBox.shrink(),
-                    data: (user) {
-                      if (user == null) {
-                        return const SizedBox.shrink();
-                      }
-
-                      return streakAsync.when(
-                        loading: () => const SizedBox.shrink(),
-                        error: (error, stack) => const SizedBox.shrink(),
-                        data: (streak) {
-                          if (streak == null) {
-                            return const SizedBox.shrink();
-                          }
-
-                          // 継続日数を計算
-                          final days = streak.calculateDaysFromStart() + 1;
-                          // 総節約額を計算
-                          final totalSavings =
-                              SavingsCalculator.calculateTotalSavings(
-                            days: days,
-                            weeklyCost: user.weeklyDrinkingCost,
-                          );
-
-                          // 週あたりのコストが設定されていない場合は表示しない
-                          if (user.weeklyDrinkingCost == null ||
-                              user.weeklyDrinkingCost! <= 0) {
-                            return const SizedBox.shrink();
-                          }
-
-                          // 1日あたりの節約額を計算
-                          final dailySavings =
-                              SavingsCalculator.calculateDailySavings(
-                            user.weeklyDrinkingCost,
-                          );
-
-                          return Card(
-                            color: AppColors.secondary.withValues(alpha: 0.1),
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.savings,
-                                        color: AppColors.secondary,
-                                        size: 24,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '累計節約額',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.textPrimary,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    SavingsCalculator.formatAmount(
-                                        totalSavings),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.secondary,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '1日あたり ${SavingsCalculator.formatAmount(dailySavings)}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: AppColors.textSecondary,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '（週あたり ${SavingsCalculator.formatAmount(user.weeklyDrinkingCost!)}）',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: AppColors.textSecondary,
-                                          fontSize: 11,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-
-              // 達成ボタン
-              Consumer(
-                builder: (context, ref, child) {
-                  final hasTodayAchievementAsync =
-                      ref.watch(hasTodayAchievementProvider);
-                  final achievementNotifier =
-                      ref.watch(achievementNotifierProvider.notifier);
-                  final achievementState =
-                      ref.watch(achievementNotifierProvider);
-
-                  // 達成記録の状態変化を監視してスナックバーを表示
-                  ref.listen(achievementNotifierProvider, (previous, next) {
-                    if (next.hasError) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            next.error.toString().replaceAll('Exception: ', ''),
-                          ),
-                          backgroundColor: AppColors.error,
-                        ),
-                      );
-                    } else if (previous?.isLoading == true &&
-                        next.hasValue &&
-                        next.value != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('達成記録を登録しました！'),
-                          backgroundColor: AppColors.secondary,
-                        ),
-                      );
-                    }
-                  });
-
-                  return hasTodayAchievementAsync.when(
-                    loading: () => ElevatedButton.icon(
-                      onPressed: null,
-                      icon: const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      label: const Text('読み込み中...'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: AppColors.textDisabled,
-                      ),
-                    ),
-                    error: (error, stack) => ElevatedButton.icon(
-                      onPressed: null,
-                      icon: const Icon(Icons.error_outline),
-                      label: const Text('エラーが発生しました'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: AppColors.error,
-                      ),
-                    ),
-                    data: (hasToday) {
-                      final isLoading = achievementState.isLoading;
-
-                      if (hasToday) {
-                        // 今日の達成記録が既にある場合
-                        return Card(
-                          color: AppColors.secondary.withValues(alpha: 0.1),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.check_circle,
-                                  color: AppColors.secondary,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '今日の達成を記録済み',
-                                  style: TextStyle(
-                                    color: AppColors.secondary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      } else {
-                        // 今日の達成記録がない場合
-                        return ElevatedButton.icon(
-                          onPressed: isLoading
-                              ? null
-                              : () async {
-                                  await achievementNotifier
-                                      .createTodayAchievement();
-                                },
-                          icon: isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(Icons.check_circle_outline),
-                          label: Text(isLoading ? '登録中...' : '今日の達成を記録'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: isLoading
-                                ? AppColors.textDisabled
-                                : AppColors.secondary,
-                            foregroundColor: Colors.white,
-                          ),
-                        );
-                      }
-                    },
-                  );
-                },
-              ),
+              const AchievementSection(),
             ],
           ),
         ),
