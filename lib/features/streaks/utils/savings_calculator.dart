@@ -4,10 +4,10 @@ import 'package:intl/intl.dart';
 class SavingsCalculator {
   /// 総節約額を計算
   /// 継続日数 × (週あたりのコスト / 7)
-  /// 
+  ///
   /// [days] 継続日数
   /// [weeklyCost] 週あたりの飲酒コスト（円）
-  /// 
+  ///
   /// 戻り値: 総節約額（円）。weeklyCostがnullまたは0以下の場合は0を返す
   static int calculateTotalSavings({
     required int days,
@@ -24,9 +24,9 @@ class SavingsCalculator {
 
   /// 1日あたりの節約額を計算
   /// 週あたりのコスト / 7
-  /// 
+  ///
   /// [weeklyCost] 週あたりの飲酒コスト（円）
-  /// 
+  ///
   /// 戻り値: 1日あたりの節約額（円）。weeklyCostがnullまたは0以下の場合は0を返す
   static int calculateDailySavings(int? weeklyCost) {
     if (weeklyCost == null || weeklyCost <= 0) {

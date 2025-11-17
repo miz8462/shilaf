@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shilaf/core/constants/app_color.dart';
 import 'package:shilaf/features/achievements/providers/achievement_provider.dart';
 import 'package:shilaf/features/auth/providers/auth_provider.dart';
+import 'package:shilaf/features/milestones/data/models/milestone_model.dart';
+import 'package:shilaf/features/milestones/providers/milestone_provider.dart';
 import 'package:shilaf/features/profile/providers/user_provider.dart';
 import 'package:shilaf/features/streaks/providers/streak_provider.dart';
 import 'package:shilaf/features/streaks/utils/savings_calculator.dart';
@@ -13,6 +15,70 @@ class HomePage extends ConsumerWidget {
   /// 日付をフォーマット（例: 2024年1月15日）
   String _formatDate(DateTime date) {
     return '${date.year}年${date.month}月${date.day}日';
+  }
+
+  /// マイルストーン達成ダイアログを表示
+  void _showMilestoneDialog(
+      BuildContext context, MilestoneDefinition milestone) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          contentPadding: const EdgeInsets.all(24),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 絵文字
+              Text(
+                milestone.emoji,
+                style: const TextStyle(fontSize: 64),
+              ),
+              const SizedBox(height: 16),
+              // タイトル
+              Text(
+                milestone.title,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              // 説明
+              Text(
+                milestone.description,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
+                ),
+                child: const Text('素晴らしい！'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -28,6 +94,24 @@ class HomePage extends ConsumerWidget {
         // バックグラウンドで更新（エラーは無視）
         Future.microtask(() {
           ref.read(streakNotifierProvider.notifier).updateStreakDays();
+        });
+
+        // マイルストーン達成をチェック
+        Future.microtask(() async {
+          final milestoneNotifier =
+              ref.read(milestoneNotifierProvider.notifier);
+          final achievedMilestone =
+              await milestoneNotifier.checkAndRecordMilestones();
+
+          if (achievedMilestone != null && context.mounted) {
+            // マイルストーン定義を取得
+            final milestoneDef =
+                MilestoneDefinition.getByDays(achievedMilestone.milestoneDays);
+            if (milestoneDef != null) {
+              // ポップアップを表示
+              _showMilestoneDialog(context, milestoneDef);
+            }
+          }
         });
       }
     });
@@ -252,7 +336,8 @@ class HomePage extends ConsumerWidget {
                           }
 
                           // 1日あたりの節約額を計算
-                          final dailySavings = SavingsCalculator.calculateDailySavings(
+                          final dailySavings =
+                              SavingsCalculator.calculateDailySavings(
                             user.weeklyDrinkingCost,
                           );
 
