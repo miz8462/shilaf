@@ -12,9 +12,16 @@ import 'package:shilaf/features/milestones/providers/milestone_provider.dart';
 import 'package:shilaf/features/profile/providers/user_provider.dart';
 import 'package:shilaf/features/streaks/providers/streak_provider.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
+  // ConsumerWidgetから変更
   const HomePage({super.key});
 
+  @override
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends ConsumerState<HomePage> {
+  // 新しく追加
   /// マイルストーン達成ダイアログを表示
   void _showMilestoneDialog(
       BuildContext context, MilestoneDefinition milestone) {
@@ -80,7 +87,8 @@ class HomePage extends ConsumerWidget {
   }
 
   /// 継続リセット用のダイアログを表示
-  void _showResetStreakDialog(BuildContext rootContext, WidgetRef ref) {
+  void _showResetStreakDialog(BuildContext rootContext) {
+    // refを削除
     DateTime selectedBreakDate = DateTime(
       DateTime.now().year,
       DateTime.now().month,
@@ -188,7 +196,7 @@ class HomePage extends ConsumerWidget {
             final isValid = !selectedRestartDate.isBefore(selectedBreakDate);
 
             return AlertDialog(
-              title: const Text('継続をリセット'),
+              title: const Text('リセット'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -219,7 +227,7 @@ class HomePage extends ConsumerWidget {
                   const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      '※ 継続が切れた翌日以降を再開日に選択できます',
+                      '※ 継続が切れた日以降を再開日に選択できます',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
@@ -237,19 +245,31 @@ class HomePage extends ConsumerWidget {
                         },
                   child: const Text('キャンセル'),
                 ),
-                ElevatedButton.icon(
+                ElevatedButton(
                   onPressed: !isSubmitting && isValid ? handleReset : null,
-                  icon: isSubmitting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                  ),
+                  child: isSubmitting
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Text('リセット中...'),
+                          ],
                         )
-                      : const Icon(Icons.refresh),
-                  label: Text(isSubmitting ? 'リセット中...' : 'リセット'),
+                      : const Text('リセット'),
                 ),
               ],
             );
@@ -260,7 +280,7 @@ class HomePage extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     // ユーザーデータを取得
     final userDataAsync = ref.watch(currentUserDataProvider);
     // 継続日数を取得
@@ -269,24 +289,31 @@ class HomePage extends ConsumerWidget {
     // ホーム画面表示時に継続日数をDBに同期
     ref.listen(currentStreakProvider, (previous, next) {
       if (next.hasValue && next.value != null) {
+        // mounted チェックを追加
+        if (!mounted) return;
+
         // バックグラウンドで更新（エラーは無視）
-        Future.microtask(() {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
           ref.read(streakNotifierProvider.notifier).updateStreakDays();
         });
 
         // マイルストーン達成をチェック
-        Future.microtask(() async {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) return;
+
           final milestoneNotifier =
               ref.read(milestoneNotifierProvider.notifier);
           final achievedMilestone =
               await milestoneNotifier.checkAndRecordMilestones();
 
-          if (achievedMilestone != null && context.mounted) {
+          if (achievedMilestone != null && mounted) {
             // マイルストーン定義を取得
             final milestoneDef =
                 MilestoneDefinition.getByDays(achievedMilestone.milestoneDays);
             if (milestoneDef != null) {
               // ポップアップを表示
+              // ignore: use_build_context_synchronously
               _showMilestoneDialog(context, milestoneDef);
             }
           }
@@ -323,7 +350,7 @@ class HomePage extends ConsumerWidget {
               const SizedBox(height: 24),
               StreakCard(
                 streakAsync: streakAsync,
-                onResetPressed: () => _showResetStreakDialog(context, ref),
+                onResetPressed: () => _showResetStreakDialog(context), // refを削除
               ),
               const SizedBox(height: 24),
               SavingsCard(

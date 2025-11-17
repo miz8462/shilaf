@@ -96,13 +96,12 @@ class StreakCard extends StatelessWidget {
                 const SizedBox(height: 24),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: TextButton.icon(
+                  child: TextButton(
                     onPressed: onResetPressed,
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.white,
                     ),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('継続をリセット'),
+                    child: const Text('リセット'),
                   ),
                 ),
               ],

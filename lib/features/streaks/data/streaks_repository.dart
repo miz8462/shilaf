@@ -10,6 +10,18 @@ class StreaksRepository {
   /// 現在ログイン中のユーザーIDを取得
   String? get currentUserId => _supabase.auth.currentUser?.id;
 
+  /// 日付を00:00:00に正規化
+  DateTime _normalizeDate(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  /// 指定された開始日から今日までの日数を計算
+  int _calculateStreakDays(DateTime startDate) {
+    final today = _normalizeDate(DateTime.now());
+    final normalizedStart = _normalizeDate(startDate);
+    return today.difference(normalizedStart).inDays + 1;
+  }
+
   /// 自分の現在の継続記録を取得
   Future<StreakModel?> getCurrentStreak() async {
     try {
@@ -46,14 +58,14 @@ class StreaksRepository {
         throw Exception('User not authenticated');
       }
 
-      // 開始日からの経過日数を計算
-      final now = DateTime.now();
-      final daysSinceStart = now.difference(sobrietyStartDate).inDays;
+      // 開始日からの経過日数を計算（正規化した日付を使用）
+      final normalizedDate = _normalizeDate(sobrietyStartDate);
+      final daysSinceStart = _calculateStreakDays(normalizedDate);
 
       // streaksテーブルに新規レコードを挿入
       final data = {
         'user_id': userId,
-        'sobriety_start_date': sobrietyStartDate.toIso8601String(),
+        'sobriety_start_date': normalizedDate.toIso8601String(),
         'current_streak_days': daysSinceStart,
         'total_resets': 0,
       };
@@ -83,7 +95,7 @@ class StreaksRepository {
       }
 
       // 最新の経過日数を計算
-      final updatedDays = currentStreak.calculateDaysFromStart();
+      final updatedDays = _calculateStreakDays(currentStreak.sobrietyStartDate);
 
       // streaksテーブルを更新
       final data = {
@@ -114,12 +126,12 @@ class StreaksRepository {
       }
 
       // 新しい開始日からの経過日数を計算
-      final now = DateTime.now();
-      final daysSinceStart = now.difference(newStartDate).inDays;
+      final normalizedDate = _normalizeDate(newStartDate);
+      final daysSinceStart = _calculateStreakDays(normalizedDate);
 
       // streaksテーブルを更新
       final data = {
-        'sobriety_start_date': newStartDate.toIso8601String(),
+        'sobriety_start_date': normalizedDate.toIso8601String(),
         'current_streak_days': daysSinceStart,
         'updated_at': DateTime.now().toIso8601String(),
       };
@@ -152,13 +164,17 @@ class StreaksRepository {
         throw Exception('Streak not found');
       }
 
+      // 新しい開始日からの経過日数を計算
+      final normalizedDate = _normalizeDate(newStartDate);
+      final daysSinceStart = _calculateStreakDays(normalizedDate);
+
       // リセット回数を増やす
       final newResetCount = currentStreak.totalResets + 1;
 
       // streaksテーブルを更新
       final data = {
-        'sobriety_start_date': newStartDate.toIso8601String(),
-        'current_streak_days': 0,
+        'sobriety_start_date': normalizedDate.toIso8601String(),
+        'current_streak_days': daysSinceStart,
         'total_resets': newResetCount,
         'last_achievement_date': null, // リセット
         'updated_at': DateTime.now().toIso8601String(),
@@ -208,7 +224,6 @@ class StreaksRepository {
 
   /// 開始日からの経過日数を計算（ヘルパーメソッド）
   int calculateDaysFromDate(DateTime startDate) {
-    final now = DateTime.now();
-    return now.difference(startDate).inDays;
+    return _calculateStreakDays(startDate);
   }
 }

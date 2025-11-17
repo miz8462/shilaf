@@ -45,6 +45,16 @@ class MyApp extends ConsumerWidget {
       title: 'Shilaf',
       theme: AppTheme.lightTheme,
 
+      // アプリ全体に最大幅を設定
+      builder: (context, child) {
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: child ?? const SizedBox.shrink(),
+          ),
+        );
+      },
+
       // debugShowCheckedModeBannerを非表示（お好みで）
       debugShowCheckedModeBanner: false,
 
