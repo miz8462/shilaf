@@ -17,6 +17,13 @@ dependencies:
   # supabase
   supabase_flutter:
 
+  # firebase
+  firebase_messaging:
+  firebase_core:
+
+  # カレンダー
+  timezone:
+
   # 状態管理
   flutter_riverpod:
 

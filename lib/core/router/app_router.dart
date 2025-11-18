@@ -6,10 +6,10 @@ import 'package:shilaf/features/auth/presentation/pages/login_page.dart';
 import 'package:shilaf/features/auth/presentation/pages/signup_page.dart';
 // 認証プロバイダーのインポート
 import 'package:shilaf/features/auth/providers/auth_provider.dart';
-import 'package:shilaf/features/home/presentation/pages/home_page.dart';
 import 'package:shilaf/features/profile/presentation/pages/onboarding_page.dart';
 // ユーザープロバイダーのインポート（追加）
 import 'package:shilaf/features/profile/providers/user_provider.dart';
+import 'package:shilaf/main/main_page.dart';
 
 /// ルーターのプロバイダー
 /// アプリ全体のルーティングを管理する
@@ -54,7 +54,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isAuthenticated &&
           hasCompletedOnboarding &&
           (isGoingToLogin || isGoingToSignup || isGoingToOnboarding)) {
-        return '/home'; // ホーム画面にリダイレクト
+        return '/main'; // メイン画面にリダイレクト
       }
 
       // 【優先順位4】問題なし（リダイレクト不要）
@@ -104,10 +104,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       /// ホーム画面
       /// パス: /home
       GoRoute(
-        path: '/home',
-        name: 'home',
+        path: '/main',
+        name: 'main',
         builder: (BuildContext context, GoRouterState state) {
-          return const HomePage();
+          return const MainPage();
         },
       ),
 
