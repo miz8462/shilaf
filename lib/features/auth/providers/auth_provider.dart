@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../data/auth_repository.dart';
 
 /// 認証リポジトリのプロバイダー
@@ -23,16 +26,18 @@ final currentUserProvider = Provider<User?>((ref) {
 });
 
 /// 認証アクションを管理するプロバイダー
-final authNotifierProvider = StateNotifierProvider<AuthNotifier, AsyncValue<void>>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  return AuthNotifier(authRepository);
-});
+final authNotifierProvider =
+    AsyncNotifierProvider<AuthNotifier, void>(AuthNotifier.new);
 
 /// 認証アクションを実行するNotifier
-class AuthNotifier extends StateNotifier<AsyncValue<void>> {
-  final AuthRepository _authRepository;
+class AuthNotifier extends AsyncNotifier<void> {
+  late final AuthRepository _authRepository;
 
-  AuthNotifier(this._authRepository) : super(const AsyncValue.data(null));
+  @override
+  FutureOr<void> build() {
+    _authRepository = ref.watch(authRepositoryProvider);
+    return null; // 初期値
+  }
 
   /// メールアドレスでサインアップ
   Future<void> signUpWithEmail(String email, String password) async {
@@ -47,7 +52,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
 
   /// メールアドレスでサインイン
   Future<void> signInWithEmail(String email, String password) async {
-    state = const AsyncValue.loading();
+    state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       await _authRepository.signInWithEmail(
         email: email,
@@ -58,7 +63,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
 
   /// Googleでサインイン
   Future<void> signInWithGoogle() async {
-    state = const AsyncValue.loading();
+    state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       await _authRepository.signInWithGoogle();
     });
@@ -66,7 +71,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
 
   /// サインアウト
   Future<void> signOut() async {
-    state = const AsyncValue.loading();
+    state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       await _authRepository.signOut();
     });
@@ -74,7 +79,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
 
   /// パスワードリセット
   Future<void> resetPassword(String email) async {
-    state = const AsyncValue.loading();
+    state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       await _authRepository.resetPassword(email);
     });

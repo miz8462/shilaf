@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shilaf/features/profile/data/models/user_model.dart';
 import 'package:shilaf/features/profile/data/user_repository.dart';
@@ -23,18 +25,17 @@ final hasCompletedOnboardingProvider = FutureProvider<bool>((ref) async {
 
 /// ユーザー情報の作成・更新を管理するプロバイダー
 final userNotifierProvider =
-    StateNotifierProvider<UserNotifier, AsyncValue<UserModel?>>((ref) {
-  final repository = ref.watch(userRepositoryProvider);
-  return UserNotifier(repository, ref);
-});
+    AsyncNotifierProvider<UserNotifier, UserModel?>(UserNotifier.new);
 
 /// ユーザー情報の作成・更新を実行するNotifier
-class UserNotifier extends StateNotifier<AsyncValue<UserModel?>> {
-  final UsersRepository _repository;
-  final Ref _ref;
+class UserNotifier extends AsyncNotifier<UserModel?> {
+  late final UsersRepository _repository;
 
-  UserNotifier(this._repository, this._ref)
-      : super(const AsyncValue.data(null));
+  @override
+  FutureOr<UserModel?> build() {
+    _repository = ref.watch(userRepositoryProvider);
+    return null; // 初期値
+  }
 
   /// 新規ユーザーを作成（初期設定時）
   Future<void> createUser({
@@ -51,8 +52,8 @@ class UserNotifier extends StateNotifier<AsyncValue<UserModel?>> {
       );
 
       // 作成後、currentUserDataProviderを再取得させる
-      _ref.invalidate(currentUserDataProvider);
-      _ref.invalidate(hasCompletedOnboardingProvider);
+      ref.invalidate(currentUserDataProvider);
+      ref.invalidate(hasCompletedOnboardingProvider);
 
       return user;
     });
@@ -75,7 +76,7 @@ class UserNotifier extends StateNotifier<AsyncValue<UserModel?>> {
       );
 
       // 更新後、currentUserDataProviderを再取得させる
-      _ref.invalidate(currentUserDataProvider);
+      ref.invalidate(currentUserDataProvider);
 
       return user;
     });

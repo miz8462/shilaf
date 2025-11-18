@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:shilaf/features/milestones/data/milestones_repository.dart';
 import 'package:shilaf/features/milestones/providers/milestone_provider.dart';
 import 'package:shilaf/features/streaks/data/models/streak_model.dart';

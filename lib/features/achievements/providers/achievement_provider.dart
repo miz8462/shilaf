@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shilaf/features/achievements/data/daily_achievement_repository.dart';
 import 'package:shilaf/features/achievements/data/models/daily_achievement_model.dart';
@@ -24,26 +26,33 @@ final hasTodayAchievementProvider = FutureProvider<bool>((ref) async {
 
 /// 達成記録の作成を管理するプロバイダー
 final achievementNotifierProvider =
-    StateNotifierProvider<AchievementNotifier, AsyncValue<DailyAchievement?>>(
-        (ref) {
-  final repository = ref.watch(dailyAchievementRepositoryProvider);
-  final streakRepository = ref.watch(streakRepositoryProvider);
-  return AchievementNotifier(repository, streakRepository, ref);
-});
+    AsyncNotifierProvider<AchievementNotifier, DailyAchievement?>(
+        AchievementNotifier.new);
 
 /// 達成記録の作成を実行するNotifier
-class AchievementNotifier extends StateNotifier<AsyncValue<DailyAchievement?>> {
-  final DailyAchievementRepository _repository;
-  final StreaksRepository _streakRepository;
-  final Ref _ref;
+class AchievementNotifier extends AsyncNotifier<DailyAchievement?> {
+  late final DailyAchievementRepository _repository;
+  late final StreaksRepository _streakRepository;
 
-  AchievementNotifier(this._repository, this._streakRepository, this._ref)
-      : super(const AsyncValue.data(null));
+  /// build() は初期化処理を行う場所
+  /// - Provider から依存を取得
+  /// - 初期値を返す（ここでは null）
+  @override
+  FutureOr<DailyAchievement?> build() {
+    _repository = ref.watch(dailyAchievementRepositoryProvider);
+    _streakRepository = ref.watch(streakRepositoryProvider);
+    return null;
+  }
 
   /// 今日の達成記録を作成
-  /// 1日1回の制限をチェックし、streaksテーブルのlast_achievement_dateも更新
+  /// - 1日1回の制限をチェック
+  /// - streaks テーブルの last_achievement_date を更新
+  /// - 関連プロバイダーを invalidate して再取得
   Future<void> createTodayAchievement() async {
-    state = const AsyncValue.loading();
+    // ローディング状態に更新
+    state = const AsyncLoading();
+
+    // guard() で例外をキャッチしつつ AsyncValue を更新
     state = await AsyncValue.guard(() async {
       // 既に今日の達成記録があるかチェック
       final hasToday = await _repository.hasTodayAchievement();
@@ -51,7 +60,7 @@ class AchievementNotifier extends StateNotifier<AsyncValue<DailyAchievement?>> {
         throw Exception('今日は既に達成記録が登録されています');
       }
 
-      // 現在のstreakを取得してstreak_idを取得
+      // 現在の streak を取得
       final currentStreak = await _streakRepository.getCurrentStreak();
       if (currentStreak == null) {
         throw Exception('継続記録が見つかりません');
@@ -62,14 +71,14 @@ class AchievementNotifier extends StateNotifier<AsyncValue<DailyAchievement?>> {
         streakId: currentStreak.id,
       );
 
-      // streaksテーブルのlast_achievement_dateを更新
+      // streaks テーブルの last_achievement_date を更新
       final today = DateTime.now();
       await _streakRepository.updateLastAchievementDate(today);
 
-      // 更新後、プロバイダーを再取得
-      _ref.invalidate(todayAchievementProvider);
-      _ref.invalidate(hasTodayAchievementProvider);
-      _ref.invalidate(currentStreakProvider);
+      // 関連プロバイダーを再取得
+      ref.invalidate(todayAchievementProvider);
+      ref.invalidate(hasTodayAchievementProvider);
+      ref.invalidate(currentStreakProvider);
 
       return achievement;
     });

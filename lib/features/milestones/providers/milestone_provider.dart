@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shilaf/features/milestones/data/milestones_repository.dart';
 import 'package:shilaf/features/milestones/data/models/milestone_model.dart';
@@ -18,21 +20,20 @@ final achievedMilestonesProvider =
 
 /// マイルストーンの達成チェックと記録を管理するプロバイダー
 final milestoneNotifierProvider =
-    StateNotifierProvider<MilestoneNotifier, AsyncValue<MilestoneModel?>>(
-        (ref) {
-  final repository = ref.watch(milestonesRepositoryProvider);
-  final streakRepository = ref.watch(streakRepositoryProvider);
-  return MilestoneNotifier(repository, streakRepository, ref);
-});
+    AsyncNotifierProvider<MilestoneNotifier, MilestoneModel?>(
+        MilestoneNotifier.new);
 
 /// マイルストーンの達成チェックと記録を実行するNotifier
-class MilestoneNotifier extends StateNotifier<AsyncValue<MilestoneModel?>> {
-  final MilestonesRepository _repository;
-  final StreaksRepository _streakRepository;
-  final Ref _ref;
+class MilestoneNotifier extends AsyncNotifier<MilestoneModel?> {
+  late final MilestonesRepository _repository;
+  late final StreaksRepository _streakRepository;
 
-  MilestoneNotifier(this._repository, this._streakRepository, this._ref)
-      : super(const AsyncValue.data(null));
+  @override
+  FutureOr<MilestoneModel?> build() {
+    _repository = ref.watch(milestonesRepositoryProvider);
+    _streakRepository = ref.watch(streakRepositoryProvider);
+    return null; // 初期値
+  }
 
   /// 現在の継続日数に基づいて達成したマイルストーンをチェック
   /// 達成したマイルストーンがあれば最新のものだけを返す（なければnull）
@@ -41,9 +42,7 @@ class MilestoneNotifier extends StateNotifier<AsyncValue<MilestoneModel?>> {
     try {
       // 現在の継続記録を取得
       final currentStreak = await _streakRepository.getCurrentStreak();
-      if (currentStreak == null) {
-        return null;
-      }
+      if (currentStreak == null) return null;
 
       // 継続日数を計算（初日=1日目）
       final days = currentStreak.calculateDaysFromStart() + 1;
@@ -78,7 +77,7 @@ class MilestoneNotifier extends StateNotifier<AsyncValue<MilestoneModel?>> {
 
       // プロバイダーを再取得（達成があった場合のみ）
       if (achievedMilestones.isNotEmpty) {
-        _ref.invalidate(achievedMilestonesProvider);
+        ref.invalidate(achievedMilestonesProvider);
         // 最新のマイルストーン（最大の日数）だけを返す
         achievedMilestones
             .sort((a, b) => b.milestoneDays.compareTo(a.milestoneDays));
