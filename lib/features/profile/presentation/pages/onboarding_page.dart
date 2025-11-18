@@ -62,9 +62,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     try {
       // 1. ユーザーデータを作成
       final weeklyCostText = _weeklyDrinkingCostController.text.trim();
-      final weeklyCost = weeklyCostText.isEmpty
-          ? null
-          : int.tryParse(weeklyCostText);
+      final weeklyCost =
+          weeklyCostText.isEmpty ? null : int.tryParse(weeklyCostText);
 
       await ref.read(userNotifierProvider.notifier).createUser(
             username: _usernameController.text.trim(),

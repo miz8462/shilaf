@@ -54,7 +54,8 @@ class AuthRepository {
         // リダイレクト後に戻ってきたら自動的に認証済み
       } else {
         // アプリ版: 今は未実装（Phase 3で対応）
-        throw UnimplementedError('Google Sign In for mobile is not implemented yet');
+        throw UnimplementedError(
+            'Google Sign In for mobile is not implemented yet');
       }
     } catch (e) {
       rethrow;
@@ -65,7 +66,7 @@ class AuthRepository {
   Future<bool> _signInWithGoogleWeb() async {
     final result = await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: kIsWeb 
+      redirectTo: kIsWeb
           ? Uri.base.origin // 現在のURLを自動取得
           : 'http://localhost:3000/auth/callback',
     );
