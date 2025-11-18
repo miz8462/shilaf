@@ -47,9 +47,17 @@ class MyApp extends ConsumerWidget {
 
       // アプリ全体に最大幅を設定
       builder: (context, child) {
+        final size = MediaQuery.of(context).size;
+
+        final double maxWidth = size.width > 800 ? 600 : size.width;
+        final double maxHeight = size.width > 1000 ? 800 : size.width;
+
         return Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
+            constraints: BoxConstraints(
+              maxWidth: maxWidth,
+              maxHeight: maxHeight,
+            ),
             child: child ?? const SizedBox.shrink(),
           ),
         );

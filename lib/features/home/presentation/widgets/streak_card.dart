@@ -50,23 +50,35 @@ class StreakCard extends StatelessWidget {
             padding: const EdgeInsets.all(32),
             child: Column(
               children: [
-                Text(
-                  '$days',
-                  style: const TextStyle(
-                    fontSize: 72,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    height: 1,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '日目',
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '$days',
+                      style: const TextStyle(
+                        fontSize: 72,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        height: 1,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: const Text(
+                          '日目',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 Container(
@@ -75,34 +87,36 @@ class StreakCard extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Stack(
                   children: [
-                    const Icon(
-                      Icons.calendar_today,
-                      color: Colors.white,
-                      size: 16,
+                    // 中央に日付
+                    Align(
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.calendar_today,
+                              color: Colors.white, size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${formatJapaneseDate(streak.sobrietyStartDate)} 〜',
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.white),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${formatJapaneseDate(streak.sobrietyStartDate)} 〜',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
+                    // 右端にリセット
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: onResetPressed,
+                        style:
+                            TextButton.styleFrom(foregroundColor: Colors.white),
+                        child: const Text('リセット'),
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 24),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: onResetPressed,
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('リセット'),
-                  ),
                 ),
               ],
             ),

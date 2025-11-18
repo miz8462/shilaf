@@ -5,7 +5,6 @@ import 'package:shilaf/features/auth/providers/auth_provider.dart';
 import 'package:shilaf/features/home/presentation/widgets/achievement_section.dart';
 import 'package:shilaf/features/home/presentation/widgets/savings_card.dart';
 import 'package:shilaf/features/home/presentation/widgets/streak_card.dart';
-import 'package:shilaf/features/home/presentation/widgets/user_info_card.dart';
 import 'package:shilaf/features/home/utils/date_formatter.dart';
 import 'package:shilaf/features/milestones/data/models/milestone_model.dart';
 import 'package:shilaf/features/milestones/providers/milestone_provider.dart';
@@ -346,7 +345,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              UserInfoCard(userAsync: userDataAsync),
+              // UserInfoCard(userAsync: userDataAsync),
               const SizedBox(height: 24),
               StreakCard(
                 streakAsync: streakAsync,
