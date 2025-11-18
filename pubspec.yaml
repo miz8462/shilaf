@@ -24,6 +24,9 @@ dependencies:
   # カレンダー
   timezone:
 
+  # データクラス
+  freezed_annotation:
+
   # 状態管理
   flutter_riverpod:
 
@@ -50,6 +53,11 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+
+  # freezed
+  freezed: ^2.4.1
+  json_serializable: ^6.6.1
+  build_runner: ^2.4.6
 
 flutter:
   uses-material-design: true

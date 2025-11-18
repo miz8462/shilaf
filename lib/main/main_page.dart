@@ -41,7 +41,7 @@ class _MainPageState extends ConsumerState<MainPage> {
             label: 'ホーム',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.timeline),
+            icon: Icon(Icons.list_alt),
             label: 'タイムライン',
           ),
           BottomNavigationBarItem(
