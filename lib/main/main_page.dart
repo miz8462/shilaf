@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shilaf/core/constants/app_color.dart';
 import 'package:shilaf/features/home/presentation/pages/home_page.dart';
-import 'package:shilaf/features/profile/presentation/pages/profile.dart';
+import 'package:shilaf/features/profile/presentation/pages/profile_page.dart';
 import 'package:shilaf/features/timeline/presentation/pages/timeline_page.dart';
 
 class MainPage extends ConsumerStatefulWidget {

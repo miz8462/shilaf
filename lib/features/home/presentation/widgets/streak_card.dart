@@ -8,11 +8,9 @@ class StreakCard extends StatelessWidget {
   const StreakCard({
     super.key,
     required this.streakAsync,
-    required this.onResetPressed,
   });
 
   final AsyncValue<StreakModel?> streakAsync;
-  final VoidCallback onResetPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +45,7 @@ class StreakCard extends StatelessWidget {
         return Card(
           color: AppColors.primary,
           child: Padding(
-            padding: const EdgeInsets.only(top: 28),
+            padding: const EdgeInsets.all(28),
             child: Column(
               children: [
                 Row(
@@ -80,40 +78,22 @@ class StreakCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 Container(
                   height: 2,
                   width: 100,
                   color: Colors.white.withValues(alpha: 0.5),
                 ),
-                const SizedBox(height: 24),
-                Stack(
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // 中央に日付
-                    Align(
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.calendar_today,
-                              color: Colors.white, size: 16),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${formatJapaneseDate(streak.sobrietyStartDate)} 〜',
-                            style: const TextStyle(
-                                fontSize: 14, color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // 右端にリセット
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: IconButton(
-                        icon: const Icon(Icons.highlight_off,
-                            color: Colors.white),
-                        onPressed: onResetPressed,
-                      ),
+                    const Icon(Icons.calendar_today,
+                        color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${formatJapaneseDate(streak.sobrietyStartDate)} 〜',
+                      style: const TextStyle(fontSize: 14, color: Colors.white),
                     ),
                   ],
                 ),
