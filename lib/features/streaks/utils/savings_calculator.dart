@@ -19,7 +19,7 @@ class SavingsCalculator {
     // 週あたりのコストを1日あたりに変換（週あたりコスト / 7）
     final dailyAmount = weeklyCost / 7;
     // 継続日数 × 1日あたりの節約額
-    return (days * dailyAmount).round();
+    return ((days - 1) * (dailyAmount)).round();
   }
 
   /// 1日あたりの節約額を計算
