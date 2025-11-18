@@ -333,33 +333,25 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          // 下に引っ張って更新
-          ref.invalidate(currentUserDataProvider);
-          ref.invalidate(currentStreakProvider);
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // UserInfoCard(userAsync: userDataAsync),
-              const SizedBox(height: 24),
-              StreakCard(
-                streakAsync: streakAsync,
-                onResetPressed: () => _showResetStreakDialog(context), // refを削除
-              ),
-              const SizedBox(height: 24),
-              SavingsCard(
-                userAsync: userDataAsync,
-                streakAsync: streakAsync,
-              ),
-              const SizedBox(height: 24),
-              const AchievementSection(),
-            ],
-          ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // UserInfoCard(userAsync: userDataAsync),
+            const SizedBox(height: 24),
+            StreakCard(
+              streakAsync: streakAsync,
+              onResetPressed: () => _showResetStreakDialog(context),
+            ),
+            const SizedBox(height: 24),
+            SavingsCard(
+              userAsync: userDataAsync,
+              streakAsync: streakAsync,
+            ),
+            const SizedBox(height: 24),
+            const AchievementSection(),
+          ],
         ),
       ),
     );

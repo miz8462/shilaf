@@ -47,7 +47,7 @@ class StreakCard extends StatelessWidget {
         return Card(
           color: AppColors.primary,
           child: Padding(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.only(top: 28),
             child: Column(
               children: [
                 Row(
@@ -108,12 +108,11 @@ class StreakCard extends StatelessWidget {
                     ),
                     // 右端にリセット
                     Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
+                      alignment: Alignment.bottomRight,
+                      child: IconButton(
+                        icon: const Icon(Icons.highlight_off,
+                            color: Colors.white),
                         onPressed: onResetPressed,
-                        style:
-                            TextButton.styleFrom(foregroundColor: Colors.white),
-                        child: const Text('リセット'),
                       ),
                     ),
                   ],

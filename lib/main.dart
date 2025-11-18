@@ -50,7 +50,7 @@ class MyApp extends ConsumerWidget {
         final size = MediaQuery.of(context).size;
 
         final double maxWidth = size.width > 800 ? 600 : size.width;
-        final double maxHeight = size.width > 1000 ? 800 : size.width;
+        final double maxHeight = size.height > 1000 ? 800 : size.height;
 
         return Center(
           child: ConstrainedBox(
