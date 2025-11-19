@@ -7,7 +7,8 @@ import 'package:shilaf/features/auth/presentation/pages/signup_page.dart';
 // 認証プロバイダーのインポート
 import 'package:shilaf/features/auth/providers/auth_provider.dart';
 import 'package:shilaf/features/profile/presentation/pages/onboarding_page.dart';
-// ユーザープロバイダーのインポート（追加）
+import 'package:shilaf/features/profile/presentation/pages/profile_edit_page.dart';
+// ユーザープロバイダーのインポート
 import 'package:shilaf/features/profile/providers/user_provider.dart';
 import 'package:shilaf/main/main_page.dart';
 
@@ -68,7 +69,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       // ========================
 
       /// ログイン画面
-      /// パス: /login
       GoRoute(
         path: '/login',
         name: 'login', // 名前をつけると context.goNamed('login') で遷移できる
@@ -92,7 +92,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       // ========================
 
       /// 初期設定画面
-      /// パス: /onboarding
       GoRoute(
         path: '/onboarding',
         name: 'onboarding',
@@ -102,7 +101,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       /// ホーム画面
-      /// パス: /home
       GoRoute(
         path: '/main',
         name: 'main',
@@ -111,20 +109,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // ========================
-      // Phase 3以降で追加予定
-      // ========================
-      // GoRoute(
-      //   path: '/profile',
-      //   name: 'profile',
-      //   builder: (context, state) => const ProfilePage(),
-      // ),
-      //
-      // GoRoute(
-      //   path: '/streaks',
-      //   name: 'streaks',
-      //   builder: (context, state) => const StreaksPage(),
-      // ),
+      /// プロフィール編集画面
+      GoRoute(
+        path: '/profile/edit',
+        name: 'profile_edit',
+        builder: (BuildContext context, GoRouterState state) {
+          return const ProfileEditPageWrapper();
+        },
+      ),
     ],
 
     // エラー画面（存在しないパスにアクセスした場合）
