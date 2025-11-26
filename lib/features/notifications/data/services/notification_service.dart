@@ -1,108 +1,52 @@
-import 'package:flutter/foundation.dart';
-import 'package:shilaf/features/notifications/data/models/notification_settings_model.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:logging/logging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotificationService {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+  static final _log = Logger('NotificationService');
 
-  // 通知設定を取得
-  Future<NotificationSettings?> getSettings() async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return null;
+  Future<void> initialize() async {
+    // 通知の許可をリクエスト
+    NotificationSettings settings = await _fcm.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
-    final response = await _supabase
-        .from('notification_settings')
-        .select()
-        .eq('user_id', userId)
-        .maybeSingle();
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      _log.info('通知が許可されました');
 
-    if (response == null) return null;
-    return NotificationSettings.fromJson(response);
-  }
+      // FCMトークンを取得
+      final vapidKey = dotenv.env['FIREBASE_VAPID_KEY'];
 
-  // 通知設定を保存/更新
-  Future<void> saveSettings(NotificationSettings settings) async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('User not authenticated');
+      String? token = await _fcm.getToken(
+        vapidKey: vapidKey,
+      );
 
-    // 既存の設定があるか確認
-    final existing = await getSettings();
+      if (token != null) {
+        // Supabaseにトークンを保存
+        await saveTokenToSupabase(token);
+      }
 
-    if (existing == null) {
-      // 新規作成
-      await _supabase.from('notification_settings').insert(settings.toJson());
-    } else {
-      // 更新
-      await _supabase
-          .from('notification_settings')
-          .update(settings.toJson())
-          .eq('user_id', userId);
+      // トークンの更新を監視
+      _fcm.onTokenRefresh.listen(saveTokenToSupabase);
     }
   }
 
-  // リマインド時刻を更新
-  Future<void> updateReminderTime(String time) async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('User not authenticated');
-
-    await _supabase.from('notification_settings').upsert({
-      'user_id': userId,
-      'reminder_time': time,
-      'updated_at': DateTime.now().toIso8601String(),
-    });
-  }
-
-  // 通知のオン/オフを切り替え
-  Future<void> toggleNotification(bool enabled) async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('User not authenticated');
-
-    await _supabase.from('notification_settings').update({
-      'is_enabled': enabled,
-      'updated_at': DateTime.now().toIso8601String(),
-    }).eq('user_id', userId);
-  }
-
-  // Web Push用のサブスクリプションを保存
-  Future<void> saveWebPushSubscription(
-      Map<String, dynamic> subscription) async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('User not authenticated');
-
-    await _supabase.from('notification_settings').upsert({
-      'user_id': userId,
-      'web_push_subscription': subscription,
-      'updated_at': DateTime.now().toIso8601String(),
-    });
-  }
-
-  // FCMトークンを保存（モバイル用）
-  Future<void> saveFCMToken(String token) async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) throw Exception('User not authenticated');
-
-    await _supabase.from('notification_settings').upsert({
-      'user_id': userId,
-      'fcm_token': token,
-      'updated_at': DateTime.now().toIso8601String(),
-    });
-  }
-
-  // 通知権限をリクエスト（プラットフォーム別）
-  Future<bool> requestPermission() async {
-    if (kIsWeb) {
-      // Web Push APIの実装はJavaScript連携が必要
-      return await _requestWebPushPermission();
-    } else {
-      // モバイルの場合はFirebase Messagingを使用
-      // TODO: Firebase Messaging実装
-      return false;
+  Future<void> saveTokenToSupabase(String token,
+      {bool? notificationEnabled, String? reminderTime}) async {
+    // Supabaseに保存
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId != null) {
+      await Supabase.instance.client.from('user_tokens').upsert({
+        'user_id': userId,
+        'fcm_token': token,
+        if (notificationEnabled != null)
+          'notification_enabled': notificationEnabled,
+        if (reminderTime != null) 'reminder_time': reminderTime,
+      }, onConflict: 'user_id');
     }
-  }
-
-  Future<bool> _requestWebPushPermission() async {
-    // Web Pushの実装は次のステップで説明
-    // とりあえずtrueを返す
-    return true;
   }
 }

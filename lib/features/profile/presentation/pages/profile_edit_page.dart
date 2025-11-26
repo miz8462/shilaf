@@ -174,10 +174,9 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
               child: const Text(
                 '保存',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white
-                ),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
               ),
             ),
         ],
@@ -289,7 +288,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                 labelText: '週あたりの飲酒コスト',
                 hintText: '金額を入力（任意）',
                 border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.attach_money),
+                prefixIcon: Icon(Icons.currency_yen_rounded),
                 suffixText: '円/週',
               ),
               keyboardType: TextInputType.number,

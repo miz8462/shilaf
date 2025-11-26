@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shilaf/features/notifications/presentation/widgets/notification_settings_widget.dart';
 import 'package:shilaf/features/profile/presentation/widgets/profile_menu_item.dart';
 
 class ProfileMenuList extends ConsumerWidget {
@@ -24,16 +25,7 @@ class ProfileMenuList extends ConsumerWidget {
           },
         ),
         const Divider(height: 1),
-        ProfileMenuItem(
-          icon: Icons.notifications_outlined,
-          title: '通知設定',
-          onTap: () {
-            // TODO: 通知設定画面へ遷移
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('通知設定画面（未実装）')),
-            );
-          },
-        ),
+        const NotificationSettingsWidget(),
       ],
     );
   }

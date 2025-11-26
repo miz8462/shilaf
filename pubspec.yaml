@@ -45,8 +45,13 @@ dependencies:
   # 環境変数
   flutter_dotenv:
 
+  # ログ
+  logging: ^1.2.0
+
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  
+  web:
 
 dev_dependencies:
   flutter_test:

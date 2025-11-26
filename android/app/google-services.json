@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "364902792906",
+    "project_id": "shilaf-313d3",
+    "storage_bucket": "shilaf-313d3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:364902792906:android:ce19a767a3bd17cc873e33",
+        "android_client_info": {
+          "package_name": "com.example.shilaf"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhoy37Ed--UzwYkpyCyw4FP0wqk5_zy3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

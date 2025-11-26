@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shilaf/core/constants/app_color.dart';
+import 'package:shilaf/features/auth/providers/auth_provider.dart';
 import 'package:shilaf/features/profile/presentation/dialogs/logout_dialog.dart';
 import 'package:shilaf/features/profile/presentation/dialogs/reset_streak_dialog.dart';
 import 'package:shilaf/features/profile/presentation/widgets/profile_menu_item.dart';
@@ -41,8 +42,9 @@ class ProfileBottomActions extends ConsumerWidget {
             icon: Icons.logout,
             title: 'ログアウト',
             textColor: Colors.red,
-            onTap: () {
+            onTap: () async {
               showLogoutDialog(context, ref);
+              await ref.read(authNotifierProvider.notifier).signOut();
             },
           ),
         ],

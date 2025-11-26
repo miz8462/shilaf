@@ -57,6 +57,7 @@ class AchievementSection extends ConsumerWidget {
           backgroundColor: AppColors.error,
         ),
       ),
+      // FIXME: ボタンを押したあとに表示されるカードがもとより下に表示される
       data: (hasToday) {
         final isLoading = achievementState.isLoading;
 
