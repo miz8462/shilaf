@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shilaf/features/achievements/data/daily_achievement_repository.dart';
 import 'package:shilaf/features/achievements/data/models/daily_achievement_model.dart';
+import 'package:shilaf/features/profile/providers/user_provider.dart';
 import 'package:shilaf/features/streaks/data/streaks_repository.dart';
 import 'package:shilaf/features/streaks/providers/streak_provider.dart';
+import 'package:shilaf/features/timeline/providers/timeline_provider.dart';
 
 /// 達成記録リポジトリのプロバイダー
 final dailyAchievementRepositoryProvider =
@@ -74,6 +76,22 @@ class AchievementNotifier extends AsyncNotifier<DailyAchievement?> {
       // streaks テーブルの last_achievement_date を更新
       final today = DateTime.now();
       await _streakRepository.updateLastAchievementDate(today);
+
+      // --- タイムライン用の自動投稿を作成 ---
+      try {
+        // 現在のユーザー情報と最新の継続日数を取得
+        final user = await ref.read(currentUserDataProvider.future);
+        final streak = await _streakRepository.updateStreakDays();
+
+        final days = streak.calculateDaysFromStart();
+        final userName = user?.username ?? '誰か';
+
+        final message = '$userNameさんが$days日達成しました！🎉';
+
+        await ref.read(timelineProvider.notifier).addPost(message);
+      } catch (_) {
+        // タイムライン投稿に失敗しても達成記録自体は成功とみなす
+      }
 
       // 関連プロバイダーを再取得
       ref.invalidate(todayAchievementProvider);

@@ -129,24 +129,26 @@ class _HomePageState extends ConsumerState<HomePage> {
       appBar: AppBar(
         title: const Text('Shilaf'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // UserInfoCard(userAsync: userDataAsync),
-            const SizedBox(height: 24),
-            StreakCard(
-              streakAsync: streakAsync,
-            ),
-            const SizedBox(height: 24),
-            SavingsCard(
-              userAsync: userDataAsync,
-              streakAsync: streakAsync,
-            ),
-            const SizedBox(height: 24),
-            const AchievementSection(),
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // UserInfoCard(userAsync: userDataAsync),
+              const SizedBox(height: 24),
+              StreakCard(
+                streakAsync: streakAsync,
+              ),
+              const SizedBox(height: 24),
+              SavingsCard(
+                userAsync: userDataAsync,
+                streakAsync: streakAsync,
+              ),
+              const SizedBox(height: 24),
+              const AchievementSection(),
+            ],
+          ),
         ),
       ),
     );

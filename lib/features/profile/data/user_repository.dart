@@ -1,139 +1,152 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shilaf/features/profile/data/avatar_service.dart';
+import 'package:shilaf/features/profile/data/models/user_model.dart';
 
-import 'models/user_model.dart';
-
-/// ユーザー情報を管理するリポジトリ
-/// usersテーブルとのやり取りを担当
+/// ユーザー情報（usersテーブル）を扱うリポジトリ
 class UsersRepository {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase;
+  final AvatarService _avatarService;
 
-  /// 現在ログイン中のユーザーIDを取得
-  String? get currentUserId => _supabase.auth.currentUser?.id;
+  UsersRepository({
+    SupabaseClient? supabaseClient,
+    AvatarService? avatarService,
+  })  : _supabase = supabaseClient ?? Supabase.instance.client,
+        _avatarService = avatarService ?? AvatarService();
 
-  /// 自分のユーザーデータを取得
-  /// 初期設定が完了しているかの判定にも使用
+  /// 現在ログイン中のユーザー情報を取得
   Future<UserModel?> getCurrentUser() async {
-    try {
-      final userId = currentUserId;
-      if (userId == null) {
-        throw Exception('User not authenticated');
-      }
+    final authUser = _supabase.auth.currentUser;
+    if (authUser == null) return null;
 
-      // usersテーブルから自分のデータを取得
-      final response = await _supabase
-          .from('users')
-          .select()
-          .eq('id', userId)
-          .maybeSingle(); // 1件または null を返す
+    final data = await _supabase
+        .from('users')
+        .select()
+        .eq('id', authUser.id)
+        .maybeSingle();
 
-      // データがない場合（初期設定未完了）
-      if (response == null) {
-        return null;
-      }
-
-      // JSONからモデルに変換
-      return UserModel.fromJson(response);
-    } catch (e) {
-      rethrow;
-    }
+    if (data == null) return null;
+    return UserModel.fromJson(data);
   }
 
-  /// 初期設定が完了しているかチェック
-  /// usersテーブルにデータがあれば完了
+  /// 初期設定が完了しているかどうか
+  /// → users テーブルにレコードがあれば true とみなす
   Future<bool> hasCompletedOnboarding() async {
-    try {
-      final user = await getCurrentUser();
-      return user != null;
-    } catch (e) {
-      return false;
-    }
+    final user = await getCurrentUser();
+    return user != null;
   }
 
-  /// 新規ユーザーの初回データを作成
-  /// 初期設定画面で呼ばれる
+  /// 新規ユーザー作成（初期設定時）
   Future<UserModel> createUser({
     required String username,
     String? bio,
     int? weeklyDrinkingCost,
   }) async {
-    try {
-      final userId = currentUserId;
-      if (userId == null) {
-        throw Exception('User not authenticated');
-      }
-
-      // usersテーブルに新規レコードを挿入
-      final data = {
-        'id': userId, // Supabase AuthのUUIDを使用
-        'username': username,
-        'bio': bio,
-        if (weeklyDrinkingCost != null)
-          'weekly_drinking_cost': weeklyDrinkingCost,
-      };
-
-      final response =
-          await _supabase.from('users').insert(data).select().single();
-
-      return UserModel.fromJson(response);
-    } catch (e) {
-      rethrow;
+    final authUser = _supabase.auth.currentUser;
+    if (authUser == null) {
+      throw Exception('User not authenticated');
     }
+
+    final now = DateTime.now().toUtc().toIso8601String();
+
+    final insertData = <String, dynamic>{
+      'id': authUser.id,
+      'username': username,
+      'bio': bio,
+      'avatar_url': null,
+      'weekly_drinking_cost': weeklyDrinkingCost,
+      'created_at': now,
+      'updated_at': null,
+    };
+
+    final data = await _supabase
+        .from('users')
+        .insert(insertData)
+        .select()
+        .single();
+
+    return UserModel.fromJson(data);
   }
 
-  /// ユーザー情報を更新
-  /// プロフィール編集画面で使用（Phase 3-2）
+  /// プロフィール更新（ユーザー名 / 自己紹介 / アバターURL / 週あたり飲酒コスト）
   Future<UserModel> updateUser({
     String? username,
     String? bio,
     String? avatarUrl,
     int? weeklyDrinkingCost,
   }) async {
-    try {
-      final userId = currentUserId;
-      if (userId == null) {
-        throw Exception('User not authenticated');
-      }
-
-      // 更新するデータを準備（nullでないもののみ）
-      final Map<String, dynamic> data = {};
-      if (username != null) data['username'] = username;
-      if (bio != null) data['bio'] = bio;
-      if (avatarUrl != null) data['avatar_url'] = avatarUrl;
-      if (weeklyDrinkingCost != null) {
-        data['weekly_drinking_cost'] = weeklyDrinkingCost;
-      }
-
-      // 更新日時を追加
-      data['updated_at'] = DateTime.now().toIso8601String();
-
-      // usersテーブルを更新
-      final response = await _supabase
-          .from('users')
-          .update(data)
-          .eq('id', userId)
-          .select()
-          .single();
-
-      return UserModel.fromJson(response);
-    } catch (e) {
-      rethrow;
+    final authUser = _supabase.auth.currentUser;
+    if (authUser == null) {
+      throw Exception('User not authenticated');
     }
+
+    final updateData = <String, dynamic>{
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+
+    if (username != null) updateData['username'] = username;
+    if (bio != null) updateData['bio'] = bio;
+    if (avatarUrl != null) updateData['avatar_url'] = avatarUrl;
+    if (weeklyDrinkingCost != null) {
+      updateData['weekly_drinking_cost'] = weeklyDrinkingCost;
+    }
+
+    final data = await _supabase
+        .from('users')
+        .update(updateData)
+        .eq('id', authUser.id)
+        .select()
+        .single();
+
+    return UserModel.fromJson(data);
   }
 
-  /// ユーザー名の重複チェック（オプション機能）
-  /// 将来的にユーザー名を一意にしたい場合に使用
+  /// ユーザー名の重複チェック
   Future<bool> isUsernameAvailable(String username) async {
-    try {
-      final response = await _supabase
-          .from('users')
-          .select('id')
-          .eq('username', username)
-          .maybeSingle();
+    final authUser = _supabase.auth.currentUser;
+    final currentId = authUser?.id;
 
-      // データがなければ使用可能
-      return response == null;
-    } catch (e) {
-      return false;
+    final List<dynamic> rows = await _supabase
+        .from('users')
+        .select('id')
+        .eq('username', username);
+
+    if (rows.isEmpty) {
+      // 誰も使っていない
+      return true;
     }
+
+    // すでに1件以上ある場合、自分のIDのものだけなら OK
+    if (currentId == null) return false;
+    return rows.every((row) => row['id'] == currentId);
+  }
+
+  /// モバイル用: File からアバター画像をアップロードして URL を返す
+  Future<String> uploadAvatar(File imageFile) async {
+    final fileName = imageFile.path.split(Platform.pathSeparator).last;
+
+    final result = ImagePickerResult(
+      file: imageFile,
+      fileName: fileName,
+    );
+
+    return _avatarService.uploadAvatar(result);
+  }
+
+  /// Web 用: バイト列とファイル名からアバター画像をアップロードして URL を返す
+  Future<String> uploadAvatarFromBytes(
+    Uint8List imageBytes,
+    String fileName,
+  ) async {
+    final result = ImagePickerResult(
+      bytes: imageBytes,
+      fileName: fileName,
+    );
+
+    return _avatarService.uploadAvatar(result);
   }
 }
+
+

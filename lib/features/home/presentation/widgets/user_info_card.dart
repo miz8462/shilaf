@@ -42,18 +42,26 @@ class UserInfoCard extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                CircleAvatar(
-                  radius: 40,
-                  backgroundColor: AppColors.primaryLight,
-                  child: Text(
-                    user.username[0].toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                // プロフィール画像（avatarUrl）があれば表示し、なければイニシャルを表示
+                if (user.avatarUrl != null)
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppColors.primaryLight,
+                    backgroundImage: NetworkImage(user.avatarUrl!),
+                  )
+                else
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppColors.primaryLight,
+                    child: Text(
+                      user.username[0].toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(height: 16),
                 Text(
                   'こんにちは、${user.username}さん',

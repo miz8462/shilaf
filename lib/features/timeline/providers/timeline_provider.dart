@@ -19,7 +19,8 @@ class TimelineNotifier extends AsyncNotifier<List<TimelinePost>> {
     final supabase = Supabase.instance.client;
     final response = await supabase
         .from('posts')
-        .select('id, user_id, content, created_at, users(username)')
+        // users テーブルから username と avatar_url をJOIN取得
+        .select('id, user_id, content, created_at, users(username, avatar_url)')
         .order('created_at', ascending: false);
 
     // Supabaseのレスポンスをモデルに変換
@@ -53,6 +54,8 @@ class TimelineNotifier extends AsyncNotifier<List<TimelinePost>> {
       content: response['content'] as String,
       createdAt: DateTime.parse(response['created_at'] as String).toLocal(),
       userName: currentUser?.username ?? '不明',
+      // 投稿者自身のアバターURLを設定（タイムライン表示用）
+      imageUrl: currentUser?.avatarUrl,
     );
     // stateを更新
     state = AsyncData([newPost, ...state.value ?? []]);

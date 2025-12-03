@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shilaf/features/profile/data/models/user_model.dart';
 import 'package:shilaf/features/profile/data/user_repository.dart';
@@ -74,6 +77,42 @@ class UserNotifier extends AsyncNotifier<UserModel?> {
         avatarUrl: avatarUrl,
         weeklyDrinkingCost: weeklyDrinkingCost,
       );
+
+      // 更新後、currentUserDataProviderを再取得させる
+      ref.invalidate(currentUserDataProvider);
+
+      return user;
+    });
+  }
+
+  /// アバター画像をアップロードしてプロフィールを更新
+  Future<void> updateAvatar(File imageFile) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      // アバターをアップロード
+      final avatarUrl = await _repository.uploadAvatar(imageFile);
+
+      // プロフィールを更新
+      final user = await _repository.updateUser(avatarUrl: avatarUrl);
+
+      // 更新後、currentUserDataProviderを再取得させる
+      ref.invalidate(currentUserDataProvider);
+
+      return user;
+    });
+  }
+
+  /// Web用アバター画像をアップロードしてプロフィールを更新
+  Future<void> updateAvatarFromBytes(
+      Uint8List imageBytes, String fileName) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      // アバターをアップロード
+      final avatarUrl =
+          await _repository.uploadAvatarFromBytes(imageBytes, fileName);
+
+      // プロフィールを更新
+      final user = await _repository.updateUser(avatarUrl: avatarUrl);
 
       // 更新後、currentUserDataProviderを再取得させる
       ref.invalidate(currentUserDataProvider);

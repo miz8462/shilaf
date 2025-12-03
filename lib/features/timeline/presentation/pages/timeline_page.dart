@@ -33,11 +33,60 @@ class TimelinePage extends ConsumerWidget {
                   itemCount: posts.length,
                   itemBuilder: (context, index) {
                     final post = posts[index];
+
+                    // 「今日の達成」由来の投稿かどうかをメッセージパターンで判定
+                    final isAchievementPost =
+                        post.content.contains('日達成しました！🎉');
+
+                    // 達成投稿はカードで強調表示
+                    if (isAchievementPost) {
+                      return Card(
+                        color: Colors.amber[50],
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        child: ListTile(
+                          leading: post.imageUrl != null
+                              ? CircleAvatar(
+                                  radius: 22,
+                                  backgroundImage: NetworkImage(post.imageUrl!),
+                                )
+                              : const CircleAvatar(
+                                  radius: 22,
+                                  child: Icon(Icons.emoji_events),
+                                ),
+                          title: Text(
+                            post.content,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Text(
+                            '${post.userName} - ${formatter.format(post.createdAt!)}',
+                          ),
+                          trailing: const Icon(
+                            Icons.emoji_events,
+                            color: Colors.amber,
+                          ),
+                        ),
+                      );
+                    }
+
+                    // 通常投稿は従来どおり
                     return ListTile(
-                      leading: const Icon(Icons.timeline),
+                      // 投稿者のプロフィール画像（アバター）を表示
+                      leading: post.imageUrl != null
+                          ? CircleAvatar(
+                              radius: 20,
+                              backgroundImage: NetworkImage(post.imageUrl!),
+                            )
+                          : const CircleAvatar(
+                              radius: 20,
+                              child: Icon(Icons.person),
+                            ),
                       title: Text(post.content),
                       subtitle: Text(
-                          '${post.userName} - ${formatter.format(post.createdAt!)}'),
+                        '${post.userName} - ${formatter.format(post.createdAt!)}',
+                      ),
                     );
                   },
                 );

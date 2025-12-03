@@ -36,6 +36,9 @@ dependencies:
   # サインイン
   google_sign_in: ^6.2.1
 
+  # 画像選択
+  image_picker: ^1.1.2
+
   # UI
   google_fonts:
 

@@ -11,7 +11,7 @@ class TimelinePost with _$TimelinePost {
     String? userName, // JOINしたユーザー名（users.name）
     required String content, // posts.content
     DateTime? createdAt, // posts.created_at
-    String? imageUrl, // posts.image_url（今回は使わなくてもOK）
+    String? imageUrl, // posts.image_url または投稿者のアバターURLとして利用
   }) = _TimelinePost;
 
   factory TimelinePost.fromJson(Map<String, dynamic> json) {
@@ -21,6 +21,7 @@ class TimelinePost with _$TimelinePost {
       content: json['content'] as String,
       createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
       userName: json['users']?['username'] as String?, // ← ネスト対応
+      imageUrl: json['users']?['avatar_url'] as String?, // 投稿者のアバターURL
     );
   }
 }

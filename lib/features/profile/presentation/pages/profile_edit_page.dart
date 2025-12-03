@@ -1,6 +1,10 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shilaf/features/profile/data/models/user_model.dart';
 import 'package:shilaf/features/profile/providers/user_provider.dart';
 
@@ -55,9 +59,13 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   late final TextEditingController _usernameController;
   late final TextEditingController _bioController;
   late final TextEditingController _weeklyDrinkingCostController;
+  final ImagePicker _picker = ImagePicker();
 
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  File? _selectedImage;
+  Uint8List? _selectedImageBytes;
+  String? _selectedImageName;
 
   @override
   void initState() {
@@ -113,6 +121,18 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
         }
       }
 
+      // アバター画像が選択されている場合はアップロード
+      if (_selectedImage != null) {
+        await ref
+            .read(userNotifierProvider.notifier)
+            .updateAvatar(_selectedImage!);
+      } else if (_selectedImageBytes != null && _selectedImageName != null) {
+        await ref.read(userNotifierProvider.notifier).updateAvatarFromBytes(
+              _selectedImageBytes!,
+              _selectedImageName!,
+            );
+      }
+
       // プロフィールを更新
       await ref.read(userNotifierProvider.notifier).updateUser(
             username: username,
@@ -146,6 +166,127 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  /// 画像を選択する
+  Future<void> _pickImage({bool useCamera = false}) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: useCamera ? ImageSource.camera : ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        if (kIsWeb) {
+          // Webの場合はバイト配列として読み込む
+          final bytes = await pickedFile.readAsBytes();
+          setState(() {
+            _selectedImageBytes = bytes;
+            _selectedImageName = pickedFile.name;
+            _selectedImage = null;
+          });
+        } else {
+          // モバイルの場合はFileとして扱う
+          setState(() {
+            _selectedImage = File(pickedFile.path);
+            _selectedImageBytes = null;
+            _selectedImageName = null;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('画像の選択に失敗しました: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// 画像選択ダイアログを表示
+  void _showImagePickerDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('アバター画像を選択'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('ギャラリーから選択'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(useCamera: false);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('カメラで撮影'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(useCamera: true);
+                },
+              ),
+              if (_selectedImage != null || _selectedImageBytes != null)
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title:
+                      const Text('画像を削除', style: TextStyle(color: Colors.red)),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      _selectedImage = null;
+                      _selectedImageBytes = null;
+                      _selectedImageName = null;
+                    });
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// アバター画像を表示するWidget
+  Widget _buildAvatarImage() {
+    if (_selectedImage != null) {
+      // 新しく選択された画像（モバイル）
+      return CircleAvatar(
+        radius: 50,
+        backgroundImage: FileImage(_selectedImage!),
+      );
+    } else if (_selectedImageBytes != null) {
+      // 新しく選択された画像（Web）
+      return CircleAvatar(
+        radius: 50,
+        backgroundImage: MemoryImage(_selectedImageBytes!),
+      );
+    } else if (widget.user.avatarUrl != null) {
+      // 既存のアバターURL
+      return CircleAvatar(
+        radius: 50,
+        backgroundImage: NetworkImage(widget.user.avatarUrl!),
+      );
+    } else {
+      // デフォルトアイコン
+      return CircleAvatar(
+        radius: 50,
+        backgroundColor: Colors.grey[300],
+        child: const Icon(
+          Icons.person,
+          size: 50,
+          color: Colors.grey,
+        ),
+      );
     }
   }
 
@@ -186,24 +327,11 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // プロフィール画像（将来的に実装）
+            // プロフィール画像
             Center(
               child: Stack(
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.grey[300],
-                    backgroundImage: widget.user.avatarUrl != null
-                        ? NetworkImage(widget.user.avatarUrl!)
-                        : null,
-                    child: widget.user.avatarUrl == null
-                        ? const Icon(
-                            Icons.person,
-                            size: 50,
-                            color: Colors.grey,
-                          )
-                        : null,
-                  ),
+                  _buildAvatarImage(),
                   Positioned(
                     right: 0,
                     bottom: 0,
@@ -218,14 +346,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                           color: Colors.white,
                           size: 20,
                         ),
-                        onPressed: () {
-                          // TODO: 画像選択機能を実装
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('画像選択機能は今後実装予定です'),
-                            ),
-                          );
-                        },
+                        onPressed: _showImagePickerDialog,
                       ),
                     ),
                   ),
