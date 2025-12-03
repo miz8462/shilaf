@@ -46,3 +46,5 @@ app.*.map.json
 
 # 環境変数
 .env
+.vercel
+.env*.local

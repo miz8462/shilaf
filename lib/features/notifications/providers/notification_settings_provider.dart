@@ -37,7 +37,7 @@ class NotificationSettingsNotifier extends AsyncNotifier<NotificationSettings> {
       }
 
       final response = await Supabase.instance.client
-          .from('user_tokens')
+          .from('notification_settings')
           .select('notification_enabled, reminder_time')
           .eq('user_id', userId)
           .maybeSingle();
@@ -71,14 +71,14 @@ class NotificationSettingsNotifier extends AsyncNotifier<NotificationSettings> {
 
       // まず現在のFCMトークンを取得
       final existingToken = await Supabase.instance.client
-          .from('user_tokens')
+          .from('notification_settings')
           .select('fcm_token')
           .eq('user_id', userId)
           .maybeSingle();
 
       if (existingToken == null) {
         // FCMトークンがない場合は通知設定のみを保存
-        await Supabase.instance.client.from('user_tokens').upsert({
+        await Supabase.instance.client.from('notification_settings').upsert({
           'user_id': userId,
           'fcm_token': '',
           'notification_enabled': newSettings.isEnabled,
@@ -86,7 +86,7 @@ class NotificationSettingsNotifier extends AsyncNotifier<NotificationSettings> {
         }, onConflict: 'user_id');
       } else {
         // FCMトークンがある場合は更新
-        await Supabase.instance.client.from('user_tokens').upsert({
+        await Supabase.instance.client.from('notification_settings').upsert({
           'user_id': userId,
           'fcm_token': existingToken['fcm_token'],
           'notification_enabled': newSettings.isEnabled,

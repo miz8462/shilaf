@@ -40,7 +40,7 @@ class NotificationService {
     // Supabaseに保存
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId != null) {
-      await Supabase.instance.client.from('user_tokens').upsert({
+      await Supabase.instance.client.from('notification_settings').upsert({
         'user_id': userId,
         'fcm_token': token,
         if (notificationEnabled != null)

@@ -37,7 +37,7 @@ class _NotificationSettingsWidgetState
                   const SizedBox(width: 12),
                   Text(
                     '通知設定',
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const Spacer(),
                   Switch(

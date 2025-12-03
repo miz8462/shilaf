@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -8,8 +7,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ルーターのインポート
 import 'core/router/app_router.dart';
-import 'features/notifications/data/services/notification_service.dart';
-import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,25 +14,37 @@ void main() async {
   // .envファイルを読み込み
   await dotenv.load(fileName: '.env');
 
+  debugPrint('SUPABASE_URL: ${dotenv.env['SUPABASE_URL']}');
+  debugPrint('SUPABASE_ANON_KEY: ${dotenv.env['SUPABASE_ANON_KEY']}');
+
   // Firebase初期化
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // try {
+  //   await Firebase.initializeApp(
+  //     options: DefaultFirebaseOptions.currentPlatform,
+  //   );
+  //   debugPrint('-----Firebase initialized----');
+  // } catch (e) {
+  //   debugPrint('-----Firebase error: $e----');
+  // }
+  debugPrint('-----Firebase skipped----');
 
   // Supabase初期化
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
+  debugPrint('-----Supabase initialized----');
 
-  // 通知サービス初期化（FCMトークン取得＆Supabase保存）
-  await NotificationService().initialize();
+  // // 通知サービス初期化（FCMトークン取得＆Supabase保存）
+  // await NotificationService().initialize();
+  debugPrint('-----Run APP----');
 
   runApp(
     const ProviderScope(
       child: MyApp(),
     ),
   );
+  debugPrint('-----Run APP completed----');
 }
 
 // StatelessWidget → ConsumerWidgetに変更（Riverpodでルーターを取得するため）

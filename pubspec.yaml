@@ -63,6 +63,9 @@ dev_dependencies:
   freezed: ^2.4.1
   json_serializable: ^6.6.1
   build_runner: ^2.4.6
+  
+  # launcher icons
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -70,3 +73,12 @@ flutter:
   # 環境変数ファイル
   assets:
     - .env
+    - shilaf-logo.png
+
+# flutter_launcher_icons configuration
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "shilaf-logo.png"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "shilaf-logo.png"
