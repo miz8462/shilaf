@@ -76,37 +76,33 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // ロゴ・タイトル
-                  Image.asset(
-                    'shilaf-logo.png',
-                    height: 120,
-                    width: 120,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 120,
-                        width: 120,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(30),
+                      child: SizedBox(
+                        height: 240,
+                        width: 240,
+                        child: Image.asset(
+                          'shilaf-logo.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              decoration: const BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.person,
+                                size: 200,
+                                color: Colors.white,
+                              ),
+                            );
+                          },
                         ),
-                        child: const Icon(
-                          Icons.person,
-                          size: 60,
-                          color: Colors.white,
-                        ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Shilaf',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
                   const Text(
                     'ソバーキュリアスSNS',
                     style: TextStyle(
@@ -115,7 +111,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
 
                   // メールアドレス入力
                   TextFormField(
