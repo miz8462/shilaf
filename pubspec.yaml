@@ -75,7 +75,6 @@ flutter:
   
   # 環境変数ファイル
   assets:
-    - .env
     - shilaf-logo.png
 
 # flutter_launcher_icons configuration
