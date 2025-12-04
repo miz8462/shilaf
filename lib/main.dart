@@ -14,9 +14,6 @@ void main() async {
   // .envファイルを読み込み
   await dotenv.load(fileName: '.env');
 
-  debugPrint('SUPABASE_URL: ${dotenv.env['SUPABASE_URL']}');
-  debugPrint('SUPABASE_ANON_KEY: ${dotenv.env['SUPABASE_ANON_KEY']}');
-
   // Firebase初期化
   // try {
   //   await Firebase.initializeApp(
