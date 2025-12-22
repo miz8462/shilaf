@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 // 画面のインポート
+import 'package:shilaf/constants/app_routes.dart';
 import 'package:shilaf/features/auth/presentation/pages/login_page.dart';
 import 'package:shilaf/features/auth/presentation/pages/signup_page.dart';
 // 認証プロバイダーのインポート
@@ -20,7 +21,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     // 初期表示する画面のパス
-    initialLocation: '/login',
+    initialLocation: AppRoutes.login,
 
     // デバッグモード（開発中はtrueにすると遷移ログが見れる）
     debugLogDiagnostics: true,
@@ -37,25 +38,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           : false;
 
       // 現在アクセスしようとしているパス
-      final isGoingToLogin = state.matchedLocation == '/login';
-      final isGoingToSignup = state.matchedLocation == '/signup';
-      final isGoingToOnboarding = state.matchedLocation == '/onboarding';
+      final isGoingToLogin = state.matchedLocation == AppRoutes.login;
+      final isGoingToSignup = state.matchedLocation == AppRoutes.signup;
+      final isGoingToOnboarding = state.matchedLocation == AppRoutes.onboarding;
 
       // 【優先順位1】未認証なのに認証が必要な画面にアクセスしようとした場合
       if (!isAuthenticated && !isGoingToLogin && !isGoingToSignup) {
-        return '/login'; // ログイン画面にリダイレクト
+        return AppRoutes.login; // ログイン画面にリダイレクト
       }
 
       // 【優先順位2】認証済みだが初期設定未完了
       if (isAuthenticated && !hasCompletedOnboarding && !isGoingToOnboarding) {
-        return '/onboarding'; // 初期設定画面にリダイレクト
+        return AppRoutes.onboarding; // 初期設定画面にリダイレクト
       }
 
       // 【優先順位3】認証済み & 初期設定完了なのにログイン画面にアクセス
       if (isAuthenticated &&
           hasCompletedOnboarding &&
           (isGoingToLogin || isGoingToSignup || isGoingToOnboarding)) {
-        return '/main'; // メイン画面にリダイレクト
+        return AppRoutes.main; // メイン画面にリダイレクト
       }
 
       // 【優先順位4】問題なし（リダイレクト不要）
@@ -70,7 +71,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       /// ログイン画面
       GoRoute(
-        path: '/login',
+        path: AppRoutes.login,
         name: 'login', // 名前をつけると context.goNamed('login') で遷移できる
         builder: (BuildContext context, GoRouterState state) {
           return const LoginPage();
@@ -80,7 +81,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       /// サインアップ画面
       /// パス: /signup
       GoRoute(
-        path: '/signup',
+        path: AppRoutes.signup,
         name: 'signup',
         builder: (BuildContext context, GoRouterState state) {
           return const SignupPage();
@@ -93,7 +94,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       /// 初期設定画面
       GoRoute(
-        path: '/onboarding',
+        path: AppRoutes.onboarding,
         name: 'onboarding',
         builder: (BuildContext context, GoRouterState state) {
           return const OnboardingPage();
@@ -102,7 +103,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       /// ホーム画面
       GoRoute(
-        path: '/main',
+        path: AppRoutes.main,
         name: 'main',
         builder: (BuildContext context, GoRouterState state) {
           return const MainPage();
@@ -111,7 +112,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       /// プロフィール編集画面
       GoRoute(
-        path: '/profile/edit',
+        path: AppRoutes.profileEdit,
         name: 'profile_edit',
         builder: (BuildContext context, GoRouterState state) {
           return const ProfileEditPageWrapper();
@@ -136,7 +137,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               Text('パス: ${state.matchedLocation}'),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () => context.go('/login'),
+                onPressed: () => context.go(AppRoutes.login),
                 child: const Text('ログイン画面に戻る'),
               ),
             ],

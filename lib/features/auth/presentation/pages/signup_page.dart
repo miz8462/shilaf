@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shilaf/constants/app_routes.dart';
+import 'package:shilaf/constants/auth_strings.dart';
 import 'package:shilaf/core/constants/app_color.dart';
 
 import '../../providers/auth_provider.dart';
@@ -40,7 +42,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       if (authState.hasError && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('登録エラー: ${authState.error}'),
+            content: Text('${AuthStrings.signupError}: ${authState.error}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -48,12 +50,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
         // 成功メッセージ
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('登録完了！確認メールをご確認ください。'),
+            content: Text(AuthStrings.signupSuccess),
             backgroundColor: Colors.green,
           ),
         );
         // ログイン画面に戻る
-        context.go('/login');
+        context.go(AppRoutes.login);
       }
     }
   }
@@ -66,7 +68,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     if (authState.hasError && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Google登録エラー: ${authState.error}'),
+          content: Text('${AuthStrings.googleSignupError}: ${authState.error}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -79,7 +81,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('新規登録'),
+        title: const Text(AuthStrings.signupPageTitle),
       ),
       body: SafeArea(
         child: Center(
@@ -93,7 +95,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                 children: [
                   // タイトル
                   const Text(
-                    'アカウント作成',
+                    AuthStrings.signupTitle,
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -102,7 +104,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Shilafで断酒の旅を始めましょう',
+                    AuthStrings.signupDescription,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
@@ -116,17 +118,17 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: 'メールアドレス',
-                      hintText: 'example@email.com',
+                      labelText: AuthStrings.emailLabel,
+                      hintText: AuthStrings.emailHint,
                       prefixIcon: Icon(Icons.email),
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'メールアドレスを入力してください';
+                        return AuthStrings.emailRequired;
                       }
                       if (!value.contains('@')) {
-                        return '有効なメールアドレスを入力してください';
+                        return AuthStrings.emailInvalid;
                       }
                       return null;
                     },
@@ -138,8 +140,8 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
-                      labelText: 'パスワード',
-                      hintText: '6文字以上',
+                      labelText: AuthStrings.passwordLabel,
+                      hintText: AuthStrings.passwordHint,
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -157,10 +159,10 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'パスワードを入力してください';
+                        return AuthStrings.passwordRequired;
                       }
-                      if (value.length < 8) {
-                        return 'パスワードは8文字以上で入力してください';
+                      if (value.length < AuthStrings.passwordMinLength) {
+                        return AuthStrings.passwordTooShort;
                       }
                       return null;
                     },
@@ -172,8 +174,8 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     controller: _confirmPasswordController,
                     obscureText: !_isConfirmPasswordVisible,
                     decoration: InputDecoration(
-                      labelText: 'パスワード（確認）',
-                      hintText: '同じパスワードを入力',
+                      labelText: AuthStrings.confirmPasswordLabel,
+                      hintText: AuthStrings.confirmPasswordHint,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -192,10 +194,10 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'パスワード（確認）を入力してください';
+                        return AuthStrings.confirmPasswordRequired;
                       }
                       if (value != _passwordController.text) {
-                        return 'パスワードが一致しません';
+                        return AuthStrings.passwordMismatch;
                       }
                       return null;
                     },
@@ -220,7 +222,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                             ),
                           )
                         : const Text(
-                            '登録する',
+                            AuthStrings.signupButton,
                             style: TextStyle(fontSize: 16),
                           ),
                   ),
@@ -232,7 +234,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                       Expanded(child: Divider()),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('または'),
+                        child: Text(AuthStrings.dividerOr),
                       ),
                       Expanded(child: Divider()),
                     ],
@@ -243,7 +245,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                   OutlinedButton.icon(
                     onPressed: authState.isLoading ? null : _handleGoogleSignup,
                     icon: const Icon(Icons.g_mobiledata, size: 24),
-                    label: const Text('Googleで登録'),
+                    label: const Text(AuthStrings.googleSignupButton),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -254,12 +256,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('すでにアカウントをお持ちの方は'),
+                      const Text(AuthStrings.alreadyHaveAccount),
                       TextButton(
                         onPressed: () {
-                          context.go('/login');
+                          context.go(AppRoutes.login);
                         },
-                        child: const Text('ログイン'),
+                        child: const Text(AuthStrings.loginButton),
                       ),
                     ],
                   ),

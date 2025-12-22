@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shilaf/constants/app_routes.dart';
 import 'package:shilaf/core/constants/app_color.dart';
 import 'package:shilaf/features/profile/providers/user_provider.dart';
 import 'package:shilaf/features/streaks/providers/streak_provider.dart';
@@ -98,7 +99,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
             backgroundColor: AppColors.success,
           ),
         );
-        context.go('/home');
+        context.go(AppRoutes.main);
       }
     } catch (error) {
       // エラー表示

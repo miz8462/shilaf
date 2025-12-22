@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../constants/app_routes.dart';
+import '../../../../constants/auth_strings.dart';
 import '../../../../core/constants/app_color.dart';
 import '../../providers/auth_provider.dart';
 
@@ -37,7 +39,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (authState.hasError && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('ログインエラー: ${authState.error}'),
+            content: Text('${AuthStrings.loginError}: ${authState.error}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -53,7 +55,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (authState.hasError && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Googleログインエラー: ${authState.error}'),
+          content: Text('${AuthStrings.googleLoginError}: ${authState.error}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -104,7 +106,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'ソバーキュリアスSNS',
+                    AuthStrings.loginDescription,
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey,
@@ -118,17 +120,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: 'メールアドレス',
-                      hintText: 'example@email.com',
+                      labelText: AuthStrings.emailLabel,
+                      hintText: AuthStrings.emailHint,
                       prefixIcon: Icon(Icons.email),
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'メールアドレスを入力してください';
+                        return AuthStrings.emailRequired;
                       }
                       if (!value.contains('@')) {
-                        return '有効なメールアドレスを入力してください';
+                        return AuthStrings.emailInvalid;
                       }
                       return null;
                     },
@@ -140,8 +142,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
-                      labelText: 'パスワード',
-                      hintText: '6文字以上',
+                      labelText: AuthStrings.passwordLabel,
+                      hintText: AuthStrings.passwordHint,
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -159,10 +161,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'パスワードを入力してください';
+                        return AuthStrings.passwordRequired;
                       }
                       if (value.length < 8) {
-                        return 'パスワードは8文字以上で入力してください';
+                        return AuthStrings.passwordTooShort;
                       }
                       return null;
                     },
@@ -187,7 +189,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                           )
                         : const Text(
-                            'ログイン',
+                            AuthStrings.loginButton,
                             style: TextStyle(fontSize: 16),
                           ),
                   ),
@@ -199,7 +201,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       Expanded(child: Divider()),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('または'),
+                        child: Text(AuthStrings.dividerOr),
                       ),
                       Expanded(child: Divider()),
                     ],
@@ -210,7 +212,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   OutlinedButton.icon(
                     onPressed: authState.isLoading ? null : _handleGoogleLogin,
                     icon: const Icon(Icons.g_mobiledata, size: 24),
-                    label: const Text('Googleでログイン'),
+                    label: const Text(AuthStrings.googleLoginButton),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -221,12 +223,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('アカウントをお持ちでない方は'),
+                      const Text(AuthStrings.noAccount),
                       TextButton(
                         onPressed: () {
-                          context.go('/signup');
+                          context.go(AppRoutes.signup);
                         },
-                        child: const Text('新規登録'),
+                        child: const Text(AuthStrings.newRegistration),
                       ),
                     ],
                   ),
