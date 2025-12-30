@@ -86,7 +86,7 @@ class AchievementNotifier extends AsyncNotifier<DailyAchievement?> {
         final days = streak.calculateDaysFromStart();
         final userName = user?.username ?? '誰か';
 
-        final message = '$userNameさんが$days日達成しました！🎉';
+        final message = '$userNameが$days日達成しました！🎉';
 
         await ref.read(timelineProvider.notifier).addPost(message);
       } catch (_) {

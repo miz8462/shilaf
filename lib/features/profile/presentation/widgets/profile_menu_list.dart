@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shilaf/features/notifications/presentation/widgets/notification_settings_widget.dart';
 import 'package:shilaf/features/profile/presentation/widgets/profile_menu_item.dart';
 
 class ProfileMenuList extends ConsumerWidget {
@@ -25,7 +24,7 @@ class ProfileMenuList extends ConsumerWidget {
           },
         ),
         const Divider(height: 1),
-        const NotificationSettingsWidget(),
+        // const NotificationSettingsWidget(),
       ],
     );
   }

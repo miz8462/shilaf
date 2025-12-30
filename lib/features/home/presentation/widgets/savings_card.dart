@@ -56,7 +56,7 @@ class SavingsCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.savings,
+                          Icons.card_giftcard_rounded,
                           color: AppColors.secondary,
                           size: 24,
                         ),

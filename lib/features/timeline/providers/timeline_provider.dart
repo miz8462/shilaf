@@ -60,4 +60,26 @@ class TimelineNotifier extends AsyncNotifier<List<TimelinePost>> {
     // stateを更新
     state = AsyncData([newPost, ...state.value ?? []]);
   }
+
+  Future<void> deletePost(String postId) async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      throw Exception('ログインが必要です');
+    }
+
+    // 投稿を削除
+    await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId)
+        .eq('user_id', user.id);
+
+    // stateを更新（削除した投稿を除外）
+    final currentPosts = state.value ?? [];
+    final updatedPosts =
+        currentPosts.where((post) => post.id != postId).toList();
+    state = AsyncData(updatedPosts);
+  }
 }
