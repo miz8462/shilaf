@@ -67,7 +67,7 @@ class StreakCard extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
                         child: const Text(
-                          '日目だよ',
+                          '日目',
                           style: TextStyle(
                             fontSize: 20,
                             color: Colors.white,

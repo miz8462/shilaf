@@ -232,6 +232,7 @@ class _TimelinePageState extends ConsumerState<TimelinePage> {
                 Expanded(
                   child: isDesktop
                       ? Focus(
+                          canRequestFocus: false,
                           onKeyEvent: (node, event) {
                             // デスクトップ: Shift+Enterで改行、Enterで投稿
                             if (event is KeyDownEvent &&
