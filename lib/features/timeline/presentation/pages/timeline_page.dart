@@ -141,8 +141,17 @@ class _TimelinePageState extends ConsumerState<TimelinePage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        subtitle: Text(
-                          '${post.userName} - ${formatter.format(post.createdAt!)}',
+                        subtitle: Row(
+                          children: [
+                            Text(
+                              '${post.userName}',
+                            ),
+                            Text(
+                              '- ${formatter.format(post.createdAt!)}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.black54),
+                            ),
+                          ],
                         ),
                         trailing: isMyPost
                             ? PopupMenuButton<String>(
@@ -187,8 +196,17 @@ class _TimelinePageState extends ConsumerState<TimelinePage> {
                               child: Icon(Icons.person),
                             ),
                       title: Text(post.content),
-                      subtitle: Text(
-                        '${post.userName} - ${formatter.format(post.createdAt!)}',
+                      subtitle: Row(
+                        children: [
+                          Text(
+                            '${post.userName}',
+                          ),
+                          Text(
+                            '- ${formatter.format(post.createdAt!)}',
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black54),
+                          ),
+                        ],
                       ),
                       trailing: isMyPost
                           ? PopupMenuButton<String>(

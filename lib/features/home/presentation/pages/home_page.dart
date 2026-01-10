@@ -135,17 +135,15 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // UserInfoCard(userAsync: userDataAsync),
-              const SizedBox(height: 24),
+              // const SizedBox(height: 16),
               StreakCard(
                 streakAsync: streakAsync,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               SavingsCard(
                 userAsync: userDataAsync,
                 streakAsync: streakAsync,
               ),
-              const SizedBox(height: 24),
               const AchievementSection(),
             ],
           ),

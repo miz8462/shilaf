@@ -1,7 +1,17 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Web専用のURL取得関数（条件付きインポート）
+String _getCurrentUrl() {
+  if (kIsWeb) {
+    // ignore: avoid_web_libraries_in_flutter
+    // ignore: deprecated_member_use
+    return Uri.base.toString().split('#')[0];
+  }
+  throw UnsupportedError('This function is only available on web');
+}
 
 /// 認証処理を担当するリポジトリ
 class AuthRepository {
@@ -57,6 +67,13 @@ class AuthRepository {
         throw UnimplementedError(
             'Google Sign In for mobile is not implemented yet');
       }
+    } on AuthException catch (e) {
+      // Supabaseの認証エラーを詳細に処理
+      if (e.message.contains('provider is not enabled')) {
+        throw Exception(
+            'Google認証が有効になっていません。SupabaseダッシュボードでGoogleプロバイダーを有効にしてください。');
+      }
+      rethrow;
     } catch (e) {
       rethrow;
     }
@@ -64,11 +81,14 @@ class AuthRepository {
 
   /// Web版のGoogle認証
   Future<bool> _signInWithGoogleWeb() async {
+    // 現在のURLを取得してリダイレクト先に設定
+    // Supabaseは自動的に現在のURLを推測するが、明示的に指定する
+    final baseUrl = _getCurrentUrl();
+
     final result = await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: kIsWeb
-          ? Uri.base.origin // 現在のURLを自動取得
-          : 'http://localhost:3000/auth/callback',
+      redirectTo: baseUrl,
+      authScreenLaunchMode: LaunchMode.externalApplication,
     );
     return result;
   }

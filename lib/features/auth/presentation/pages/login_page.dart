@@ -50,17 +50,53 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _handleGoogleLogin() async {
-    await ref.read(authNotifierProvider.notifier).signInWithGoogle();
+    try {
+      await ref.read(authNotifierProvider.notifier).signInWithGoogle();
 
-    // エラーチェック
-    final authState = ref.read(authNotifierProvider);
-    if (authState.hasError && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${AuthStrings.googleLoginError}: ${authState.error}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      // エラーチェック
+      final authState = ref.read(authNotifierProvider);
+      if (authState.hasError && mounted) {
+        final errorMessage = authState.error.toString();
+        String displayMessage;
+
+        // エラーメッセージを解析してより分かりやすく表示
+        if (errorMessage.contains('provider is not enabled')) {
+          displayMessage = 'Google認証が有効になっていません。\n'
+              'SupabaseダッシュボードでGoogleプロバイダーを有効にしてください。\n'
+              '設定方法:\n'
+              '1. Supabaseダッシュボードにログイン\n'
+              '2. Authentication > Providers > Google を開く\n'
+              '3. "Enable Google provider" をオンにする\n'
+              '4. Google Client ID と Client Secret を設定\n'
+              '5. Redirect URL に ${Uri.base.origin} を追加';
+        } else if (errorMessage.contains('redirect_uri_mismatch')) {
+          displayMessage = 'リダイレクトURLが正しく設定されていません。\n'
+              'SupabaseダッシュボードのRedirect URLsに\n'
+              '${Uri.base.origin} を追加してください。';
+        } else {
+          displayMessage = '${AuthStrings.googleLoginError}: $errorMessage';
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(displayMessage),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 10),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${AuthStrings.googleLoginError}: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 

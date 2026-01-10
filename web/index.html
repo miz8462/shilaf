@@ -22,6 +22,21 @@
 </head>
 
 <body>
+  <script>
+    // Supabase OAuth リダイレクト処理
+    // URLフラグメント（#access_token=...）を処理してセッションを復元
+    window.addEventListener('DOMContentLoaded', function () {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+
+      if (accessToken && refreshToken) {
+        // フラグメントをクリアしてセッション情報を保存
+        // Supabase Flutter SDKが自動的に処理するため、ここではURLをクリーンアップ
+        window.history.replaceState(null, null, window.location.pathname);
+      }
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 

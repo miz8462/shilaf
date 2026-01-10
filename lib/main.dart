@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -29,8 +30,21 @@ void main() async {
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+    authOptions: const FlutterAuthClientOptions(
+      // OAuthリダイレクト後の処理を有効化
+      authFlowType: AuthFlowType.pkce,
+      autoRefreshToken: true,
+    ),
   );
   debugPrint('-----Supabase initialized----');
+
+  // OAuthリダイレクト後のセッション復元（Web版）
+  // Supabase Flutter SDKは自動的にセッションを復元するため、
+  // ここでは初期化のみ行う
+  if (kIsWeb) {
+    debugPrint(
+        '-----Web mode: OAuth redirect will be handled automatically----');
+  }
 
   // // 通知サービス初期化（FCMトークン取得＆Supabase保存）
   // await NotificationService().initialize();
