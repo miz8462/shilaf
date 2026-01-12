@@ -10,7 +10,6 @@ plugins {
 
 android {
     namespace = "com.example.shilaf"
-    archivesBaseName = "shilaf"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
