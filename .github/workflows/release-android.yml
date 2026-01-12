@@ -20,6 +20,12 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Create .env file  # ← これを追加
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+          echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}" >> .env
+
       - name: Build Android APK
         run: flutter build apk --release
 
