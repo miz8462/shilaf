@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:shilaf/features/timeline/data/timeline_post_model.dart';
 import 'package:shilaf/features/timeline/providers/timeline_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -141,18 +142,7 @@ class _TimelinePageState extends ConsumerState<TimelinePage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        subtitle: Row(
-                          children: [
-                            Text(
-                              '${post.userName}',
-                            ),
-                            Text(
-                              '- ${formatter.format(post.createdAt!)}',
-                              style: const TextStyle(
-                                  fontSize: 12, color: Colors.black54),
-                            ),
-                          ],
-                        ),
+                        subtitle: NameAndDate(post: post, formatter: formatter),
                         trailing: isMyPost
                             ? PopupMenuButton<String>(
                                 icon: const Icon(Icons.more_vert),
@@ -196,18 +186,7 @@ class _TimelinePageState extends ConsumerState<TimelinePage> {
                               child: Icon(Icons.person),
                             ),
                       title: Text(post.content),
-                      subtitle: Row(
-                        children: [
-                          Text(
-                            '${post.userName}',
-                          ),
-                          Text(
-                            '- ${formatter.format(post.createdAt!)}',
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.black54),
-                          ),
-                        ],
-                      ),
+                      subtitle: NameAndDate(post: post, formatter: formatter),
                       trailing: isMyPost
                           ? PopupMenuButton<String>(
                               icon: const Icon(Icons.more_vert),
@@ -298,6 +277,34 @@ class _TimelinePageState extends ConsumerState<TimelinePage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class NameAndDate extends StatelessWidget {
+  const NameAndDate({
+    super.key,
+    required this.post,
+    required this.formatter,
+  });
+
+  final TimelinePost post;
+  final DateFormat formatter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          '${post.userName}',
+        ),
+        Text(
+          '- ${formatter.format(post.createdAt!)}',
+          style: const TextStyle(
+              fontSize: 12, color: Colors.black54),
+        ),
+      ],
     );
   }
 }

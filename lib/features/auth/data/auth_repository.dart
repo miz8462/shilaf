@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -63,9 +64,8 @@ class AuthRepository {
         await _signInWithGoogleWeb();
         // リダイレクト後に戻ってきたら自動的に認証済み
       } else {
-        // アプリ版: 今は未実装（Phase 3で対応）
-        throw UnimplementedError(
-            'Google Sign In for mobile is not implemented yet');
+        // モバイル版: ネイティブGoogle Sign-Inを使用
+        await signInWithGoogleNative();
       }
     } on AuthException catch (e) {
       // Supabaseの認証エラーを詳細に処理
@@ -95,11 +95,26 @@ class AuthRepository {
 
   /// アプリ版のGoogle認証
   Future<AuthResponse> signInWithGoogleNative() async {
-    // Google Sign Inのインスタンス取得
-    final googleSignIn = GoogleSignIn(
-      clientId: dotenv.env['GOOGLE_IOS_CLIENT_ID'], // iOS用
-      serverClientId: dotenv.env['GOOGLE_WEB_CLIENT_ID'], // Web用
-    );
+    // プラットフォーム別のGoogle Sign-In設定
+    GoogleSignIn googleSignIn;
+
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      // iOS用設定
+      googleSignIn = GoogleSignIn(
+        clientId: dotenv.env['GOOGLE_IOS_CLIENT_ID'],
+        serverClientId: dotenv.env['GOOGLE_WEB_CLIENT_ID'],
+        scopes: ['email', 'profile'],
+      );
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      // Android用設定（serverClientIdのみ必要）
+      googleSignIn = GoogleSignIn(
+        serverClientId: dotenv.env['GOOGLE_WEB_CLIENT_ID'],
+        scopes: ['email', 'profile'],
+      );
+    } else {
+      throw UnsupportedError(
+          'Google Sign-In is not supported on this platform');
+    }
 
     // Googleアカウント選択
     final googleUser = await googleSignIn.signIn();
